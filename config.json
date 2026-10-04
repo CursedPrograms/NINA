@@ -1,0 +1,19 @@
+{
+  "Config": {
+    "AppName": "NINA",
+    "Description": "Network Inspector & Notification Assistant - the fleet's caretaker",
+    "NINA": {
+      "Port": 5012,
+      "RiftHost": "127.0.0.1",
+      "RiftPort": 5000,
+      "NoraHost": "192.168.4.1",
+      "NoraSsid": "NORA",
+      "CheckSeconds": 5,
+      "SlowMs": 2000,
+      "Speak": true,
+      "Voice": "Microsoft Zira Desktop",
+      "VoicePitch": 0.85,
+      "MissionLog": true
+    }
+  }
+}

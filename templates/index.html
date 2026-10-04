@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ name }} - fleet health</title>
+  <style>
+    :root {
+      --bg: #061110; --panel: #0B1C1A; --border: #173B36; --divider: #102A26;
+      --text: #E6F2EF; --text-sec: #93ABA6; --text-dim: #566E69;
+      --accent: #3FD9B4; --accent2: #2BA88B; --warn: #FFBE50; --problem: #E0565B;
+      --font: 'Courier New', Courier, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); padding: 20px 16px; max-width: 1100px; margin: 0 auto; }
+    header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+    h1 { color: var(--accent); font-size: 1.8rem; letter-spacing: 0.1em; }
+    .sub { color: var(--text-sec); font-size: 0.85rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; }
+    .card h2 { font-size: 0.75rem; color: var(--text-dim); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+    .row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; font-size: 0.9rem; }
+    .row span:first-child { color: var(--text-sec); }
+    .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; background: var(--text-dim); }
+    .up { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .down { background: var(--problem); }
+    a { color: var(--accent); text-decoration: none; }
+    #events { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; }
+    .ev { display: grid; grid-template-columns: 70px 1fr; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--divider); font-size: 0.88rem; }
+    .ev:last-child { border-bottom: none; }
+    .ev time { color: var(--text-dim); }
+    .ev .why { color: var(--text-sec); font-size: 0.8rem; margin-top: 2px; }
+    .warn b { color: var(--warn); } .problem b { color: var(--problem); } .info b { color: var(--text); font-weight: normal; }
+    .empty { color: var(--text-dim); padding: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>{{ name }}</h1>
+    <span class="sub">Network Inspector &amp; Notification Assistant - the fleet's caretaker</span>
+  </header>
+
+  <div class="grid">
+    <div class="card"><h2>This PC</h2><div id="pc"></div></div>
+    <div class="card"><h2>NORA</h2><div id="nora"></div></div>
+    <div class="card"><h2>Fleet (via RIFT)</h2><div id="fleet"></div></div>
+    <div class="card"><h2>Serial ports</h2><div id="ports"></div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:8px;border:none;background:none;padding:0"><h2>What I've noticed</h2></div>
+  <div id="events"><p class="empty">Nothing yet.</p></div>
+
+  <script>
+    const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const row = (k, v) => `<div class="row"><span>${esc(k)}</span><span>${v}</span></div>`;
+    const dot = up => `<span class="dot ${up === true ? 'up' : up === false ? 'down' : ''}"></span>`;
+    const ms = v => v == null ? '--' : (v >= 1000 ? (v / 1000).toFixed(1) + ' s' : v + ' ms');
+    const dur = s => s == null ? '--' : s >= 3600 ? Math.floor(s / 3600) + ' h ' + Math.floor(s % 3600 / 60) + ' min'
+                                 : Math.floor(s / 60) + ' min ' + Math.floor(s % 60) + ' s';
+    const modes = ['Manual', 'Auto', 'Line', 'Remote'];
+
+    function refresh() {
+      fetch('/status').then(r => r.json()).then(d => {
+        document.getElementById('pc').innerHTML =
+          row('WiFi', esc(d.wifi || 'none')) + row('RIFT', dot(d.rift_up) + (d.rift_up ? 'up' : d.rift_up === false ? 'down' : '--'));
+        const n = d.nora;
+        document.getElementById('nora').innerHTML =
+          row('Answering', dot(n.up) + ms(n.ms)) + row('Up for', dur(n.uptime_s)) +
+          row('Mode', n.mode == null ? '--' : esc(modes[n.mode] || n.mode) + (n.msrc ? ` <span class="sub">(${esc(n.msrc)})</span>` : '')) +
+          row('Web page', ms(n.page_ms));
+        const names = Object.keys(d.robots).sort();
+        document.getElementById('fleet').innerHTML = names.length ? names.map(k => {
+          const r = d.robots[k];
+          const label = r.url ? `<a href="${esc(r.url)}" target="_blank">${esc(k)}</a>` : esc(k);
+          return `<div class="row"><span>${dot(r.up)}${label}</span><span>${ms(r.ms)}</span></div>`;
+        }).join('') : '<p class="sub">No robots registered with RIFT.</p>';
+        const ports = Object.entries(d.ports);
+        document.getElementById('ports').innerHTML = ports.length
+          ? ports.map(([p, desc]) => row(p, `<span class="sub">${esc(desc)}</span>`)).join('') : '<p class="sub">None plugged in.</p>';
+        document.getElementById('events').innerHTML = d.events.length ? d.events.map(e => `
+          <div class="ev ${esc(e.level)}">
+            <time>${new Date(e.t * 1000).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</time>
+            <div><b>${esc(e.text)}</b>${e.why ? `<div class="why">${esc(e.why)}</div>` : ''}</div>
+          </div>`).join('') : '<p class="empty">Nothing yet.</p>';
+      }).catch(() => {});
+    }
+    refresh();
+    setInterval(refresh, 3000);
+  </script>
+</body>
+</html>

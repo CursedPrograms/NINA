@@ -1,0 +1,17 @@
+Yes. Here's one I think fits the fleet well, plus two shorter ideas.
+
+## VIGIL: the fleet's caretaker
+**V**irtual **I**nspector **G**uarding **I**nfrastructure and **L**inks
+
+Tonight's problems would have been much easier to spot with a bot like this. NORA looked offline because her page took 10 seconds to load. The ARM controller connected to the wrong port. UV blink might be making NORA restart.
+
+**What it does:**
+- **Watches every robot's health.** It checks each robot every few seconds through RIFT's `/fleet` and each robot's web port (5002, 5003…). It logs how long each one takes to answer and how long it's been running (NORA's `/talk` already reports `now`). If uptime suddenly drops back to near zero, it reports "NORA rebooted at 21:14, right after `/uvBlink`".
+- **Spots strange mode changes.** It records NORA's `mode` and the new `msrc` field over time. If she switches mode and no person did it, VIGIL catches it.
+- **Keeps a serial port map.** Using the `WHO` / `I am …` check that ARM and DREAM already use, it keeps a list like "COM11 = Arm, COM6 = NORA ESP32" and warns when two programs fight over a port.
+- **Speaks up.** It reports problems with Windows text-to-speech (like `flash.bat`), joins the Brainfuck chatter as one of the robots, and writes to RIFT's mission log.
+- **Tells you what's wrong.** Each problem comes with a likely cause, e.g. "NORA's web server answered in 9.8 s; something is blocking her main loop."
+
+It would register with RIFT like any other robot (with a `talk:` port), so it would appear on the dashboard and MILA without any changes.
+
+I'd start with VIGIL: it's the most immediately useful, and it reuses things you already have (the registry, `board_id`, the mission log, the talk system). - vigil is a stupid name its always female names that end in a and is usually for letters long other than dream and rift... GINA perhaps?

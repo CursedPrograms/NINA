@@ -4,17 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ name }} - fleet health</title>
+  <link rel="icon" href="/favicon.ico">
   <style>
     :root {
-      --bg: #061110; --panel: #0B1C1A; --border: #173B36; --divider: #102A26;
-      --text: #E6F2EF; --text-sec: #93ABA6; --text-dim: #566E69;
-      --accent: #3FD9B4; --accent2: #2BA88B; --warn: #FFBE50; --problem: #E0565B;
+      /* from colour_scheme.xml: sampled from her avatar */
+      --bg: #080B0F; --panel: #10161C; --border: #26323C; --divider: #18212A;
+      --text: #F2EDE6; --text-sec: #A39E9A; --text-dim: #65686C;
+      --accent: #E45160; --accent2: #872840; --cream: #F5E1BF; --ok: #7FC8A9; --warn: #FFBE50; --problem: #FF6B4A;
       --font: 'Courier New', Courier, monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg); color: var(--text); font-family: var(--font); padding: 20px 16px; max-width: 1100px; margin: 0 auto; }
     header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
     h1 { color: var(--accent); font-size: 1.8rem; letter-spacing: 0.1em; }
+    .avatar { width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; align-self: center; }
     .sub { color: var(--text-sec); font-size: 0.85rem; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 18px; }
     .card { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; }
@@ -22,7 +25,7 @@
     .row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; font-size: 0.9rem; }
     .row span:first-child { color: var(--text-sec); }
     .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; background: var(--text-dim); }
-    .up { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .up { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
     .down { background: var(--problem); }
     a { color: var(--accent); text-decoration: none; }
     #events { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; }
@@ -36,6 +39,7 @@
 </head>
 <body>
   <header>
+    <img class="avatar" src="/avatar.jpg" alt="NINA">
     <h1>{{ name }}</h1>
     <span class="sub">Network Inspector &amp; Notification Assistant - the fleet's caretaker</span>
   </header>

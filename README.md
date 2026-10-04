@@ -1,5 +1,32 @@
+[![Twitter: @NorowaretaGemu](https://img.shields.io/badge/X-@NorowaretaGemu-blue.svg?style=flat)](https://x.com/NorowaretaGemu)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+<div align="center">
+  <a href="https://ko-fi.com/cursedentertainment">
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="ko-fi" style="width: 20%;"/>
+  </a>
+</div>
+<div align="center">
+  <img alt="Python" src="https://img.shields.io/badge/python%20-%23323330.svg?&style=for-the-badge&logo=python&logoColor=white"/>
+  <img alt="Flask" src="https://img.shields.io/badge/flask%20-%23323330.svg?&style=for-the-badge&logo=flask&logoColor=white"/>
+</div>
+<div align="center">
+  <img alt="Git" src="https://img.shields.io/badge/git%20-%23323330.svg?&style=for-the-badge&logo=git&logoColor=white"/>
+</div>
+
+---
+
 # NINA
 ## Network Inspector & Notification Assistant
+
+- Robot Type: Caretaker (software, runs on the PC beside RIFT)
+
+<div align="center">
+  <img src="images/nina_avatar.jpg" alt="NINA avatar: a retro nurse in a crimson dress with headphones and a red-cross cap" width="320"/>
+  <p><i>NINA</i></p>
+</div>
+
+**Site:** [cursedprograms.github.io/NINA](https://cursedprograms.github.io/NINA/)
 
 The fleet's caretaker. NINA watches every robot and says what's wrong, and why, before you have to go looking.
 
@@ -46,8 +73,27 @@ She registers with RIFT every 10 s (`type: caretaker`, `web:5012`, `talk:5012`),
 - `GET /events`: her log, newest first
 - `GET /ping`, `GET /chirp?u=0-13`
 
+## Colours
+
+Her colours come from her avatar (`colour_scheme.xml`): slate blue-grey surfaces, her red-cross red as the accent, her crimson dress and a warm cream. Her page, her options menu and the site all use them.
+
 ## Related Projects
 
 - [RIFT](https://github.com/CursedPrograms/RIFT)
 - [NORA-Robot-v00](https://github.com/CursedPrograms/NORA-Robot-v00)
 - [DREAM](https://github.com/CursedPrograms/DREAM)
+- [MILA](https://github.com/CursedPrograms/MILA)
+
+---
+
+<br>
+<div align="center">
+&copy; Cursed Entertainment 2026
+</div>
+<br>
+<div align="center">
+<a href="https://cursed-entertainment.itch.io/" target="_blank">
+    <img src="https://github.com/CursedPrograms/cursedentertainment/raw/main/images/logos/logo-wide-grey.png"
+        alt="CursedEntertainment Logo" style="width:250px;">
+</a>
+</div>

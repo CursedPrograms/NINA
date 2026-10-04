@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NINA — Network Inspector &amp; Notification Assistant</title>
+<meta name="description" content="NINA is the DREAM Robotics fleet's caretaker: she watches every robot, says what's wrong and why, and writes it to RIFT's mission log.">
+<meta name="color-scheme" content="dark">
+<meta property="og:title" content="NINA — Network Inspector &amp; Notification Assistant">
+<meta property="og:description" content="The fleet's caretaker: health checks, reboot and mode-change detection, spoken alerts.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="images/nina_avatar.jpg">
+<link rel="icon" href="site/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="site/apple-touch-icon.png">
+<link rel="stylesheet" href="site/style.css">
+<script src="site/site.js" defer></script>
+</head>
+<body>
+
+<nav aria-label="Primary">
+  <div class="wrap">
+    <a class="brand" href="#top">NINA</a>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#checks">Checks</a></li>
+      <li><a href="#quickstart">Quick start</a></li>
+      <li><a href="#settings">Settings</a></li>
+      <li><a href="#api">API</a></li>
+      <li><a href="https://github.com/CursedPrograms/NINA">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="eyebrow">Cursed Entertainment</div>
+    <h1>NINA</h1>
+    <p class="tagline">Network Inspector &amp; Notification Assistant</p>
+    <p class="lede">The fleet's caretaker. NINA watches every robot and tells you what's wrong, and why, before you have to go looking: who went offline, who rebooted, whose web page is so slow it froze her, and which mode change nobody made.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/CursedPrograms/NINA">View on GitHub</a>
+      <a class="btn" href="#quickstart">Quick start</a>
+      <a class="btn" href="https://ko-fi.com/cursedentertainment">Support on Ko-fi</a>
+    </div>
+    <div class="tags" aria-label="Technologies">
+      <span class="tag">Python</span>
+      <span class="tag">Flask</span>
+      <span class="tag">pygame</span>
+      <span class="tag">Windows TTS</span>
+      <span class="tag">MIT License</span>
+    </div>
+
+    <figure class="avatar">
+      <img src="images/nina_avatar.jpg" alt="NINA's avatar: a retro nurse in a crimson dress with headphones and a red-cross cap" width="768" height="768">
+      <figcaption>NINA &middot; avatar</figcaption>
+    </figure>
+  </div>
+</header>
+
+<main>
+
+<section id="overview">
+  <div class="wrap">
+    <h2>Overview</h2>
+    <h3 class="title">Every robot, looked after</h3>
+    <div class="grid cols-3">
+      <div class="card">
+        <span class="k">Watch</span>
+        <h4>The whole fleet</h4>
+        <p>Every robot RIFT knows, checked every few seconds: answering or not, and how fast. Two misses in a row and she says it's offline; she says when it's back, too.</p>
+      </div>
+      <div class="card">
+        <span class="k">Diagnose</span>
+        <h4>Causes, not just symptoms</h4>
+        <p>Each problem comes with a likely reason: &ldquo;NORA isn't answering &mdash; this PC is on another network&rdquo;, or &ldquo;NORA rebooted &mdash; check what was just switched on&rdquo;.</p>
+      </div>
+      <div class="card">
+        <span class="k">Speak</span>
+        <h4>Out loud</h4>
+        <p>The important things are spoken with Windows text-to-speech and written to RIFT's mission log, so nothing slips by while you're working on a robot.</p>
+      </div>
+      <div class="card">
+        <span class="k">NORA</span>
+        <h4>A closer look at the hub</h4>
+        <p>NORA runs the network, so NINA watches her uptime for reboots, her drive mode and who changed it, and how long her web page takes to send.</p>
+      </div>
+      <div class="card">
+        <span class="k">Ports</span>
+        <h4>Hands off the boards</h4>
+        <p>Serial ports are listed, never opened: opening a port resets an Arduino and fights the program that owns it. She guesses which board each one is.</p>
+      </div>
+      <div class="card">
+        <span class="k">Fleet</span>
+        <h4>One of the robots</h4>
+        <p>She registers with RIFT like everyone else, so she's on the dashboard and in MILA's list, and she joins the Brainfuck conversations in her own pitch.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="checks">
+  <div class="wrap">
+    <h2>Checks</h2>
+    <h3 class="title">What she looks at, and why</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>What</th><th>How</th><th>What it catches</th></tr></thead>
+        <tbody>
+          <tr><td>Fleet</td><td class="mono">RIFT /fleet, then each robot's /ping</td><td>Offline, back online, slow to answer (over 2&nbsp;s)</td></tr>
+          <tr><td>NORA uptime</td><td class="mono">:5002/talk &rarr; now</td><td>Reboots: uptime falling back to zero, e.g. a power dip from the UV light or motors</td></tr>
+          <tr><td>NORA mode</td><td class="mono">:5002/sensors &rarr; mode, msrc</td><td>Mode changes, and ones no web page, Bluetooth app or remote made</td></tr>
+          <tr><td>NORA's page</td><td class="mono">:5002/ once a minute</td><td>A page so slow her loop freezes while it sends, so RIFT thinks she's offline</td></tr>
+          <tr><td>This PC's WiFi</td><td class="mono">netsh wlan show interfaces</td><td>Windows hopping off NORA's network to one with internet</td></tr>
+          <tr><td>Serial ports</td><td class="mono">pyserial list_ports (never opened)</td><td>Boards plugged in and unplugged, with a guess at which robot</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="quickstart">
+  <div class="wrap">
+    <h2>Quick start</h2>
+    <h3 class="title">Running in a minute</h3>
+    <p class="muted">NINA runs on the PC next to <a href="https://github.com/CursedPrograms/RIFT">RIFT</a>. <code>run.bat</code> creates her venv the first time and starts her; <code>run_all.bat</code> in the GitHub folder starts her with the rest of the fleet.</p>
+<pre><span class="p">&gt;</span> run.bat                  <span class="c"># sets up venv, then starts NINA</span>
+<span class="p">&gt;</span> options.bat              <span class="c"># her settings, as an options menu</span>
+
+<span class="c"># Her page: the fleet, and everything she's noticed</span>
+http://127.0.0.1:5012/</pre>
+  </div>
+</section>
+
+<section id="settings">
+  <div class="wrap">
+    <h2>Settings</h2>
+    <h3 class="title">config.json, or the options menu</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Setting</th><th>Default</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">Port</td><td class="mono">5012</td><td>Her page and API</td></tr>
+          <tr><td class="mono">RiftHost / RiftPort</td><td class="mono">127.0.0.1 / 5000</td><td>Where RIFT runs</td></tr>
+          <tr><td class="mono">NoraHost / NoraSsid</td><td class="mono">192.168.4.1 / NORA</td><td>NORA's address and WiFi name</td></tr>
+          <tr><td class="mono">CheckSeconds</td><td class="mono">5</td><td>How often she looks</td></tr>
+          <tr><td class="mono">SlowMs</td><td class="mono">2000</td><td>Slower than this is worth a warning</td></tr>
+          <tr><td class="mono">Speak / Voice / VoicePitch</td><td class="mono">on / Zira / 0.85</td><td>Her voice, and her chirp pitch</td></tr>
+          <tr><td class="mono">MissionLog</td><td class="mono">on</td><td>Write problems to RIFT's mission log</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="api">
+  <div class="wrap">
+    <h2>API</h2>
+    <h3 class="title">For RIFT and anything else</h3>
+    <div class="grid cols-2">
+      <div class="card"><h4><code>GET /status</code></h4><p>Everything she knows: robots, NORA, this PC's WiFi, serial ports and recent events, as JSON.</p></div>
+      <div class="card"><h4><code>GET /events</code></h4><p>Her log, newest first: time, level (info / warn / problem), what happened and why.</p></div>
+      <div class="card"><h4><code>GET /chirp?u=0-13</code></h4><p>Says a Brainfuck phrase on the PC speaker, like the robots' buzzers. RIFT's conversations use it.</p></div>
+      <div class="card"><h4><code>GET /ping</code></h4><p><code>NINA alive</code>, for anyone checking on the caretaker.</p></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="https://github.com/CursedPrograms/NINA">GitHub</a>
+      <a href="https://x.com/NorowaretaGemu">X: @NorowaretaGemu</a>
+      <a href="https://cursed-entertainment.itch.io/">itch.io</a>
+      <a href="https://ko-fi.com/cursedentertainment">Ko-fi</a>
+      <a href="https://github.com/CursedPrograms/NINA/blob/main/LICENSE">MIT License</a>
+    </div>
+
+    <div class="logos">
+      <a href="https://ko-fi.com/cursedentertainment">
+        <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support Cursed Entertainment on Ko-fi" width="180" loading="lazy">
+      </a>
+      <a href="https://cursed-entertainment.itch.io/">
+        <img src="https://github.com/CursedPrograms/cursedentertainment/raw/main/images/logos/logo-wide-grey.png" alt="Cursed Entertainment" width="250" loading="lazy">
+      </a>
+      <a href="https://github.com/SynthWomb">
+        <img src="https://github.com/SynthWomb/synth.womb/blob/main/logos/synthwomb07.png?raw=true" alt="SynthWomb" width="200" loading="lazy">
+      </a>
+    </div>
+
+    <div>&copy; Cursed Entertainment 2026</div>
+  </div>
+</footer>
+
+</body>
+</html>

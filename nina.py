@@ -32,7 +32,7 @@ import time
 from collections import deque
 
 import requests
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_from_directory
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 NAME = "NINA"
@@ -355,6 +355,16 @@ def ping():
 def colours():
     with open(os.path.join(HERE, "colour_scheme.xml"), encoding="utf-8") as f:
         return f.read(), 200, {"Content-Type": "application/xml"}
+
+
+@app.route("/avatar.jpg")
+def avatar():
+    return send_from_directory(os.path.join(HERE, "images"), "nina_avatar.jpg", max_age=86400)
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(os.path.join(HERE, "site"), "favicon.ico", max_age=86400)
 
 
 @app.route("/chirp")

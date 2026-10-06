@@ -2,3 +2,4 @@ flask
 requests
 pyserial
 pygame
+numpy

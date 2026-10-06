@@ -51,6 +51,16 @@
     <div class="card"><h2>Serial ports</h2><div id="ports"></div></div>
   </div>
 
+  <div class="card" style="margin-bottom:18px">
+    <h2>Story time</h2>
+    <p class="sub" style="margin-bottom:10px">How a robot is doing, as a bedtime story: I write the opening from what I've noticed, and a tiny storyteller model (TinyStories, small enough for an ESP32) tells the rest.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <select id="story-robot" style="background:var(--bg);color:var(--text);border:1px solid var(--border);padding:6px;font-family:var(--font)"><option>NORA</option></select>
+      <button id="story-btn" style="background:var(--bg);color:var(--accent);border:1px solid var(--accent);padding:6px 14px;font-family:var(--font);cursor:pointer">TELL ME A STORY</button>
+    </div>
+    <p id="story" style="margin-top:12px;line-height:1.7;white-space:pre-wrap"></p>
+  </div>
+
   <div class="card" style="margin-bottom:8px;border:none;background:none;padding:0"><h2>What I've noticed</h2></div>
   <div id="events"><p class="empty">Nothing yet.</p></div>
 
@@ -90,6 +100,20 @@
     }
     refresh();
     setInterval(refresh, 3000);
+
+    // story time: the robot list follows the fleet
+    const sel = document.getElementById('story-robot');
+    setInterval(() => fetch('/status').then(r => r.json()).then(d => {
+      const names = ['NORA', ...Object.keys(d.robots).sort()];
+      if (sel.options.length !== names.length) sel.innerHTML = names.map(n => `<option>${esc(n)}</option>`).join('');
+    }).catch(() => {}), 5000);
+    document.getElementById('story-btn').addEventListener('click', () => {
+      const out = document.getElementById('story');
+      out.textContent = 'Once upon a time...';
+      fetch('/story?robot=' + encodeURIComponent(sel.value)).then(r => r.json()).then(d => {
+        out.textContent = d.story || d.error;
+      }).catch(() => out.textContent = "I couldn't think of a story just now.");
+    });
   </script>
 </body>
 </html>

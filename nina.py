@@ -34,6 +34,8 @@ from collections import deque
 import requests
 from flask import Flask, jsonify, render_template, request, send_from_directory
 
+import story
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 NAME = "NINA"
 
@@ -215,6 +217,8 @@ class Watch:
                 lvl, why = ("info", f"Changed by {src}.") if src in ("web", "bt", "ir") else ("warn", f"Nobody I know changed it (source: {src}).")
                 note(lvl, f"NORA switched to {label} mode.", why, speak=lvl == "warn")
             self.nora.update(mode=mode, msrc=src)
+            blind = [side for side, k in (("front", "F"), ("left", "L"), ("back", "B"), ("right", "R")) if d.get(k) == -1]
+            self.nora["blind"] = blind[0] if len(blind) == 1 else None   # one sensor always silent = probably broken
 
         if time.time() - self._last_page_check > 60:   # her full page: the slow one that used to block her
             self._last_page_check = time.time()
@@ -254,6 +258,32 @@ class Watch:
     def snapshot(self):
         return {"robots": self.robots, "nora": self.nora, "rift_up": self.rift_up, "wifi": self.wifi,
                 "ports": self.ports or {}, "events": list(events)[-80:][::-1]}
+
+
+def troubles_for(name):
+    """What NINA has noticed about a robot, as phrases a children's story can use."""
+    name = name.upper()
+    out = []
+    recent = [e for e in list(events)[-150:] if name in e["text"].upper() and time.time() - e["t"] < 6 * 3600]
+    if name == "NORA":
+        n = watch.nora
+        if n["up"] is False:
+            out.append("fell asleep and would not wake up")
+        if any("rebooted" in e["text"] for e in recent):
+            out.append("suddenly fell down and had to start all over again")
+        if n.get("page_ms") and n["page_ms"] > CFG["SlowMs"]:
+            out.append("became very, very slow")
+        if any("Nobody I know changed it" in e.get("why", "") for e in recent):
+            out.append("started doing things all by herself")
+        if n.get("blind"):
+            out.append(f"could not see on her {n['blind']} side")
+    else:
+        r = watch.robots.get(name) or next((v for k, v in watch.robots.items() if k.upper() == name), None)
+        if r is None or r.get("up") is False:
+            out.append("went away and did not come back")
+        elif r.get("ms") and r["ms"] > CFG["SlowMs"]:
+            out.append("became very, very slow")
+    return out
 
 
 def _port_of(rb):
@@ -365,6 +395,18 @@ def avatar():
 @app.route("/favicon.ico")
 def favicon():
     return send_from_directory(os.path.join(HERE, "site"), "favicon.ico", max_age=86400)
+
+
+@app.route("/story")
+def story_route():
+    """GET /story?robot=NORA - how that robot is doing, told as a bedtime story (text only)."""
+    robot = (request.args.get("robot") or "NORA").strip()[:20]
+    troubles = troubles_for(robot)
+    try:
+        text = story.tell_story(robot, troubles)
+    except Exception as e:
+        return jsonify({"robot": robot, "troubles": troubles, "error": f"the storyteller couldn't start: {e}"}), 503
+    return jsonify({"robot": robot, "troubles": troubles, "story": text})
 
 
 @app.route("/chirp")

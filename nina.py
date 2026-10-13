@@ -17,7 +17,10 @@ puzzled over:
 Everything goes to her log (web page on :5012, GET /events), the important
 things are said out loud and written to RIFT's mission log, and she registers
 with RIFT like any robot, so she's on its dashboard and can join the Brainfuck
-chatter (/chirp).
+chatter (/chirp). She also keeps TINA, the fleet's engineer, in the picture:
+everything she notices as it happens, and a snapshot of the fleet every
+TINA_EVERY_S (POST TINA's /fleet_news), so TINA knows the fleet before she starts
+a job.
 
     python nina.py            (run.bat sets up the venv first)
 """
@@ -48,6 +51,8 @@ def load_config():
 CFG = load_config()
 PORT = CFG["Port"]
 RIFT = f"http://{CFG['RiftHost']}:{CFG['RiftPort']}"
+TINA = CFG.get("TinaUrl", "http://127.0.0.1:5013").rstrip("/")
+TINA_EVERY_S = 30
 NORA = CFG["NoraHost"]
 
 # ---------------------------------------------------------------- her log
@@ -68,6 +73,7 @@ def note(level, text, why="", speak=False, mission=False, key=None):
         say(text)
     if mission and CFG.get("MissionLog", True):
         threading.Thread(target=_post, args=(f"{RIFT}/mission", {"who": NAME, "text": f"{text} {why}".strip()}), daemon=True).start()
+    threading.Thread(target=_post, args=(f"{TINA}/fleet_news", {"from": NAME, "event": e}), daemon=True).start()
 
 
 def _post(url, data):
@@ -317,13 +323,26 @@ watch = Watch()
 
 def watcher():
     note("info", "NINA is watching the fleet.", speak=True)
+    told_tina = 0
     while True:
         for check in (watch.pc, watch.nora_check, watch.fleet):
             try:
                 check()
             except Exception as e:   # a bug in one check mustn't stop the others
                 note("warn", f"My {check.__name__} check failed: {e}")
+        if time.time() - told_tina > TINA_EVERY_S:
+            told_tina = time.time()
+            threading.Thread(target=_post, args=(f"{TINA}/fleet_news", {"from": NAME, "snapshot": fleet_for_tina()}),
+                             daemon=True).start()
         time.sleep(CFG["CheckSeconds"])
+
+
+def fleet_for_tina():
+    """The fleet in a few facts: who's up and how fast, NORA, RIFT, this PC's WiFi."""
+    return {"rift_up": watch.rift_up, "wifi": watch.wifi,
+            "nora": {k: watch.nora.get(k) for k in ("up", "ms", "mode", "msrc", "uptime_s", "page_ms")},
+            "robots": {n: {"up": r.get("up"), "ms": r.get("ms")} for n, r in watch.robots.items()},
+            "ports": watch.ports or {}}
 
 
 def heartbeat():

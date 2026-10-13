@@ -42,6 +42,7 @@ The fleet's caretaker. NINA watches every robot and says what's wrong, and why, 
 | **Serial ports** | Ports appearing and disappearing, with a guess at which board it is | Listed only, **never opened**: opening a port resets an Arduino and fights the program that owns it |
 
 Everything goes to her log. She says the important things out loud (Windows text-to-speech) and writes them to RIFT's mission log.
+She also keeps [TINA](https://github.com/CursedPrograms/TINA), the fleet's engineer, in the picture: everything she notices as it happens, and a snapshot of the fleet every 30 s, so TINA starts every job knowing the fleet.
 
 ## Running
 
@@ -66,6 +67,7 @@ She registers with RIFT every 10 s (`type: caretaker`, `web:5012`, `talk:5012`),
 | `SlowMs` | `2000` | slower than this is worth a warning |
 | `Speak` / `Voice` / `VoicePitch` | on / Zira / `0.85` | her voice and her chirp pitch |
 | `MissionLog` | on | write problems to RIFT's mission log |
+| `TinaUrl` | `http://127.0.0.1:5013` | where TINA is, for her fleet news |
 
 ## API
 

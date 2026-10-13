@@ -13,7 +13,8 @@
       "Speak": true,
       "Voice": "Microsoft Zira Desktop",
       "VoicePitch": 0.85,
-      "MissionLog": true
+      "MissionLog": true,
+      "TinaUrl": "http://127.0.0.1:5013"
     }
   }
 }

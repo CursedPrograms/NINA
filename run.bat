@@ -7,9 +7,10 @@ cd /d "%~dp0"
 set "VENV=%~dp0venv"
 set "PY=%VENV%\Scripts\python.exe"
 
+REM Python 3.11: pygame has no prebuilt wheel for the newest Pythons (3.14 fails to build).
 if not exist "%PY%" (
     echo Creating venv ...
-    py -3 -m venv "%VENV%" 2>nul || python -m venv "%VENV%"
+    py -3.11 -m venv "%VENV%" 2>nul || py -3 -m venv "%VENV%" 2>nul || python -m venv "%VENV%"
 )
 if not exist "%PY%" goto :nopython
 

@@ -94,6 +94,21 @@
         <h4>One of the robots</h4>
         <p>She registers with RIFT like everyone else, so she's on the dashboard and in MILA's list, and she joins the Brainfuck conversations in her own pitch.</p>
       </div>
+      <div class="card">
+        <span class="k">Checkups</span>
+        <h4>How are you?</h4>
+        <p>She asks every robot how it is &mdash; moving or still, turning, wheels locked, music, mode &mdash; and watches its distance sensors. One stuck on a value gets a checkup: <em>are you standing still?</em> Moving: she tells you. Still: she moves it a little and measures, like a doctor.</p>
+      </div>
+      <div class="card">
+        <span class="k">TINA</span>
+        <h4>Keeps TINA posted</h4>
+        <p>Everything she notices goes to TINA as it happens, with a snapshot of the fleet every 30&nbsp;s, so TINA starts every job knowing who&rsquo;s up and how they are.</p>
+      </div>
+      <div class="card">
+        <span class="k">RIFT</span>
+        <h4>Says when she's lost</h4>
+        <p>If registering with RIFT stops working she says so &mdash; a 404 means something else is on RIFT&rsquo;s port.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -146,6 +161,9 @@ http://127.0.0.1:5012/</pre>
           <tr><td class="mono">SlowMs</td><td class="mono">2000</td><td>Slower than this is worth a warning</td></tr>
           <tr><td class="mono">Speak / Voice / VoicePitch</td><td class="mono">on / Zira / 0.85</td><td>Her voice, and her chirp pitch</td></tr>
           <tr><td class="mono">MissionLog</td><td class="mono">on</td><td>Write problems to RIFT's mission log</td></tr>
+          <tr><td class="mono">TinaUrl</td><td class="mono">http://127.0.0.1:5013</td><td>Where TINA is, for her fleet news</td></tr>
+          <tr><td class="mono">StuckMinutes</td><td class="mono">10</td><td>A sensor on one value this long gets a checkup</td></tr>
+          <tr><td class="mono">Passwords</td><td class="mono">empty</td><td>NORA's wheel-lock password and MILA's PIN, so she may move them a little to test a sensor</td></tr>
         </tbody>
       </table>
     </div>
@@ -160,6 +178,8 @@ http://127.0.0.1:5012/</pre>
       <div class="card"><h4><code>GET /status</code></h4><p>Everything she knows: robots, NORA, this PC's WiFi, serial ports and recent events, as JSON.</p></div>
       <div class="card"><h4><code>GET /events</code></h4><p>Her log, newest first: time, level (info / warn / problem), what happened and why.</p></div>
       <div class="card"><h4><code>GET /chirp?u=0-13</code></h4><p>Says a Brainfuck phrase on the PC speaker, like the robots' buzzers. RIFT's conversations use it.</p></div>
+      <div class="card"><h4><code>GET /checkups</code></h4><p>How each robot says it is (moving, turning, wheels locked, music, mode) and its distance readings.</p></div>
+      <div class="card"><h4><code>POST /report</code></h4><p>A robot sends its own readings: <code>{"name", "state": {...}, "sensors": {"front": 23.5}}</code>.</p></div>
       <div class="card"><h4><code>GET /ping</code></h4><p><code>NINA alive</code>, for anyone checking on the caretaker.</p></div>
     </div>
   </div>

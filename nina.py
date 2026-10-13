@@ -346,13 +346,23 @@ def fleet_for_tina():
 
 
 def heartbeat():
-    """Register with RIFT like any robot: on its dashboard, and in the conversations (talk:)."""
+    """Register with RIFT like any robot: on its dashboard, and in the conversations (talk:).
+    Says so when that starts or stops working (a 404 means something else is on RIFT's port)."""
+    registered = None
     while True:
         try:
-            requests.post(f"{RIFT}/register", data={"name": NAME, "type": "caretaker",
-                                                     "capabilities": f"fleet_health,web:{PORT},talk:{PORT}"}, timeout=2)
-        except requests.RequestException:
-            pass
+            r = requests.post(f"{RIFT}/register", data={"name": NAME, "type": "caretaker",
+                                                         "capabilities": f"fleet_health,web:{PORT},talk:{PORT}"}, timeout=2)
+            ok, why = r.ok, f"HTTP {r.status_code}"
+        except requests.RequestException as e:
+            ok, why = False, type(e).__name__
+        if ok != registered:
+            if ok:
+                note("info", "I'm registered with RIFT.")
+            else:
+                note("warn", f"I can't register with RIFT ({why}).",
+                     "Something else may be on RIFT's port." if why == "HTTP 404" else "Retrying every 10 s.")
+            registered = ok
         time.sleep(10)
 
 

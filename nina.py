@@ -13,6 +13,11 @@ puzzled over:
              network?), and the serial ports coming and going
   ports      listed only, never opened: opening a port resets an Arduino and
              fights the program that owns it (that's how the ARM lost COM11)
+  checkups   every robot's state (moving, turning, wheels locked, music, mode)
+             and its distance sensors. A sensor stuck on one value or reading
+             nothing gets a checkup: is the robot standing still? If it's moving
+             she tells you; if it's still she moves it a little and measures
+             (checkup.py). Robots can also send their readings: POST /report
 
 Everything goes to her log (web page on :5012, GET /events), the important
 things are said out loud and written to RIFT's mission log, and she registers
@@ -38,6 +43,7 @@ import requests
 from flask import Flask, jsonify, render_template, request, send_from_directory
 
 import story
+from checkup import Checkups
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 NAME = "NINA"
@@ -174,6 +180,7 @@ class Watch:
             elif st["up"] is None:
                 note("info", f"{name} is online ({ms} ms).")
             st["up"], st["misses"] = True, 0
+            checkups.poll(name, st["url"])
             if ms > CFG["SlowMs"]:
                 note("warn", f"{name} took {ms / 1000:.1f} seconds to answer.",
                      "Something is blocking its main loop, or the network is struggling.", key=f"slow-{name}")
@@ -223,6 +230,7 @@ class Watch:
                 lvl, why = ("info", f"Changed by {src}.") if src in ("web", "bt", "ir") else ("warn", f"Nobody I know changed it (source: {src}).")
                 note(lvl, f"NORA switched to {label} mode.", why, speak=lvl == "warn")
             self.nora.update(mode=mode, msrc=src)
+            checkups.take("NORA", f"http://{NORA}:5002", d)
             blind = [side for side, k in (("front", "F"), ("left", "L"), ("back", "B"), ("right", "R")) if d.get(k) == -1]
             self.nora["blind"] = blind[0] if len(blind) == 1 else None   # one sensor always silent = probably broken
 
@@ -263,7 +271,7 @@ class Watch:
 
     def snapshot(self):
         return {"robots": self.robots, "nora": self.nora, "rift_up": self.rift_up, "wifi": self.wifi,
-                "ports": self.ports or {}, "events": list(events)[-80:][::-1]}
+                "ports": self.ports or {}, "checkups": checkups.status(), "events": list(events)[-80:][::-1]}
 
 
 def troubles_for(name):
@@ -319,6 +327,7 @@ def _dur(s):
 
 
 watch = Watch()
+checkups = Checkups(CFG, note)
 
 
 def watcher():
@@ -342,7 +351,8 @@ def fleet_for_tina():
     return {"rift_up": watch.rift_up, "wifi": watch.wifi,
             "nora": {k: watch.nora.get(k) for k in ("up", "ms", "mode", "msrc", "uptime_s", "page_ms")},
             "robots": {n: {"up": r.get("up"), "ms": r.get("ms")} for n, r in watch.robots.items()},
-            "ports": watch.ports or {}}
+            "ports": watch.ports or {},
+            "states": {n: c["says"] for n, c in checkups.status().items()}}
 
 
 def heartbeat():
@@ -403,6 +413,19 @@ def status():
 @app.route("/events")
 def events_json():
     return jsonify(list(events)[::-1])
+
+
+@app.route("/report", methods=["POST"])
+def report():
+    """A robot sends its own readings: {"name", "state": {"moving", "turning", "wheels_locked",
+    "music", "mode"}, "sensors": {"front": 23.5, ...}} (cm)."""
+    ok = checkups.report(request.get_json(silent=True) or {})
+    return jsonify({"ok": ok}), 200 if ok else 400
+
+
+@app.route("/checkups")
+def checkups_now():
+    return jsonify(checkups.status())
 
 
 @app.route("/ping")

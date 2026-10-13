@@ -44,6 +44,24 @@ The fleet's caretaker. NINA watches every robot and says what's wrong, and why, 
 Everything goes to her log. She says the important things out loud (Windows text-to-speech) and writes them to RIFT's mission log.
 She also keeps [TINA](https://github.com/CursedPrograms/TINA), the fleet's engineer, in the picture: everything she notices as it happens, and a snapshot of the fleet every 30 s, so TINA starts every job knowing the fleet.
 
+### Checkups
+
+NINA asks every robot how it is: **moving or standing still, turning, wheels locked, playing music, its mode**,
+from its own status page (NORA's `/sensors`, MILA's and the others' `/status`) or from readings the robot sends her
+(`POST /report {"name", "state": {...}, "sensors": {"front": 23.5}}`). `GET /checkups` shows what each one says.
+
+She also watches their distance sensors. One that reads nothing (0, -1, 999) or exactly the same value for
+`StuckMinutes` gets a checkup, like a doctor's:
+
+1. *"MILA, are you standing still?"*
+2. **Moving**, yet the reading never changes: the sensor is stuck - she tells you, out loud.
+3. **Standing still**: she moves it a little (forward for a front/back sensor, a small turn for a side one),
+   measures again, and moves it back. Changed = healthy, it was only parked. Unchanged = she tells you.
+4. **Can't tell, or can't move it**: she says what she saw and what would let her test it.
+
+She only moves a robot that is standing still in manual mode, and only with the key you give her in
+`Passwords` (NORA's wheel-lock password, MILA's PIN). Without it she never moves anyone.
+
 ## Running
 
 ```bat
@@ -68,6 +86,8 @@ She registers with RIFT every 10 s (`type: caretaker`, `web:5012`, `talk:5012`),
 | `Speak` / `Voice` / `VoicePitch` | on / Zira / `0.85` | her voice and her chirp pitch |
 | `MissionLog` | on | write problems to RIFT's mission log |
 | `TinaUrl` | `http://127.0.0.1:5013` | where TINA is, for her fleet news |
+| `StuckMinutes` | `10` | a sensor on one value this long gets a checkup |
+| `Passwords` | empty | `NORA` / `MILA` keys, so she may move them a little to test a sensor |
 
 ## API
 

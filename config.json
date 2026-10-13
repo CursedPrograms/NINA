@@ -14,7 +14,12 @@
       "Voice": "Microsoft Zira Desktop",
       "VoicePitch": 0.85,
       "MissionLog": true,
-      "TinaUrl": "http://127.0.0.1:5013"
+      "TinaUrl": "http://127.0.0.1:5013",
+      "StuckMinutes": 10,
+      "Passwords": {
+        "NORA": "",
+        "MILA": ""
+      }
     }
   }
 }

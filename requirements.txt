@@ -3,3 +3,4 @@ requests
 pyserial
 pygame
 numpy
+pytest

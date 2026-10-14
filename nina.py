@@ -30,9 +30,11 @@ a job.
     python nina.py            (run.bat sets up the venv first)
 """
 
+import ipaddress
 import json
 import os
 import re
+import socket
 import subprocess
 import sys
 import threading
@@ -131,6 +133,7 @@ class Watch:
         self.nora = {"up": None, "ms": None, "uptime_s": None, "mode": None, "msrc": None, "page_ms": None}
         self.ports = None
         self.wifi = None
+        self.ips = []               # this PC's IPv4 addresses, the one it would reach NORA from first
         self.rift_up = None
         self._last_page_check = 0
 
@@ -196,9 +199,7 @@ class Watch:
         r, ms = timed_get(f"http://{NORA}:5002/talk", 3)
         if r is None or not r.ok:
             if self.nora["up"] is not False:
-                why = "Her WiFi is gone - she may be off or rebooting."
-                if self.wifi and self.wifi != CFG["NoraSsid"]:
-                    why = f"This PC is on {self.wifi}, not her network."
+                why = self.nora_why()
                 note("problem", "NORA isn't answering.", why, speak=True, mission=self.nora["up"] is True)
             self.nora.update(up=False, ms=None)
             return
@@ -242,6 +243,16 @@ class Watch:
                 note("warn", f"NORA's web page took {pms / 1000:.1f} seconds.",
                      "Her loop is frozen while it sends - RIFT will think she's offline.", speak=True, key="nora-page")
 
+    def nora_why(self):
+        """Why NORA might not answer: is it her, or is this PC just not on her network?"""
+        net = ipaddress.ip_network(f"{NORA}/24", strict=False)
+        if self.wifi == CFG["NoraSsid"] or any(ipaddress.ip_address(ip) in net for ip in self.ips):
+            return "Her WiFi is gone - she may be off or rebooting."
+        where = f" at {self.ips[0]}" if self.ips else ""
+        mine = f"on {self.wifi}{where}" if self.wifi else f"on a cable{where}" if self.ips else "on no network at all"
+        return (f"This PC isn't on NORA's network: it's {mine}, and hers is {net.with_prefixlen.replace('0/24', 'x')}. "
+                f"Join her WiFi \"{CFG['NoraSsid']}\" to reach her.")
+
     # -- this PC
     def pc(self):
         ssid = None
@@ -256,6 +267,7 @@ class Watch:
             note("info", f"This PC moved to {ssid or 'no'} WiFi.", "" if ssid == CFG["NoraSsid"] else
                  "NORA's network has no internet, so Windows may hop back to a known one.")
         self.wifi = ssid
+        self.ips = _local_ips()
 
         try:
             from serial.tools import list_ports
@@ -272,6 +284,22 @@ class Watch:
     def snapshot(self):
         return {"robots": self.robots, "nora": self.nora, "rift_up": self.rift_up, "wifi": self.wifi,
                 "ports": self.ports or {}, "checkups": checkups.status(), "events": list(events)[-80:][::-1]}
+
+
+def _local_ips():
+    """This PC's IPv4 addresses, the one it would use to reach NORA first (no packet is sent)."""
+    ips = []
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect((NORA, 5002))
+            ips.append(s.getsockname()[0])
+    except OSError:
+        pass
+    try:
+        ips += [a[4][0] for a in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET)]
+    except OSError:
+        pass
+    return [ip for i, ip in enumerate(ips) if ip not in ips[:i] and not ip.startswith(("127.", "169.254."))]
 
 
 def troubles_for(name):

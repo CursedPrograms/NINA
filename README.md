@@ -60,7 +60,7 @@ She also watches their distance sensors. One that reads nothing (0, -1, 999) or 
 4. **Can't tell, or can't move it**: she says what she saw and what would let her test it.
 
 She only moves a robot that is standing still in manual mode, and only with the key you give her in
-`Passwords` (NORA's wheel-lock password, MILA's PIN). Without it she never moves anyone.
+`Passwords` (NORA's wheel-lock password, MILA's and WHIP's PINs). Without it she never moves anyone.
 
 ## Running
 
@@ -87,7 +87,7 @@ She registers with RIFT every 10 s (`type: caretaker`, `web:5012`, `talk:5012`),
 | `MissionLog` | on | write problems to RIFT's mission log |
 | `TinaUrl` | `http://127.0.0.1:5013` | where TINA is, for her fleet news |
 | `StuckMinutes` | `10` | a sensor on one value this long gets a checkup |
-| `Passwords` | empty | `NORA` / `MILA` keys, so she may move them a little to test a sensor |
+| `Passwords` | empty | `NORA` / `MILA` / `WHIP` keys, so she may move them a little to test a sensor |
 
 ## API
 

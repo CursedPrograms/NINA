@@ -29,6 +29,8 @@ NUDGE_S = 0.4               # how long the little move lasts
 CHANGED_CM = 1.0            # a real change, not sensor jitter
 DIST_KEY = re.compile(r"dist|ultra|sonar|range|front|back|left|right", re.I)
 NORA_MODES = ["manual", "auto", "line", "remote"]
+WHIP_MODES = ["obstacle", "ir", "web"]
+WHIP_STEP_S = 1.5           # WHIP walks: a 0.4 s nudge is less than a step
 
 
 def dead(v):
@@ -54,6 +56,29 @@ def read_state(name, d):
             st.update(moving=bool(ml or mr), turning=bool(ml or mr) and ml != mr)
         st.update(mode=d.get("mode"))
         sensors = {"front": d.get("dist")}
+    elif n.startswith("WHIP"):                           # /status (esp32.ino handleStatus)
+        move = d.get("move")                             # 0 stand, 1 walk, 2 backward, 3/4 turning
+        if isinstance(move, int):
+            st.update(moving=move != 0, turning=move in (3, 4))
+        mode = d.get("controlMode")
+        st.update(mode=WHIP_MODES[mode] if isinstance(mode, int) and 0 <= mode < 3 else mode)
+        sensors = {"front": d.get("distance")}
+    elif n.startswith("KIDA") and "direction" in d:      # KIDA00's /status (shared_state.py): no distance sensors
+        direction = str(d.get("direction", "")).upper()
+        st.update(moving=d["moving"] if isinstance(d.get("moving"), bool) else direction not in ("STOPPED", "STOP", ""),
+                  turning=direction in ("LEFT", "RIGHT"), mode=d.get("mode"),
+                  wheels_locked=bool(d["motor_lock"]) if "motor_lock" in d else None,
+                  music=d.get("music") if d.get("music") in ("playing", "stopped") else
+                        ("playing" if d.get("music_playing") else "stopped") if "music_playing" in d else None)
+        sensors = {}
+    elif n.startswith("KIDA") and isinstance(d.get("sensors"), dict):   # KIDA01's /status (server.py)
+        st.update(wheels_locked=bool(d.get("motor_lock")), mode=d.get("mode"),
+                  music="playing" if d.get("music_on") else "stopped")       # she doesn't say whether she's moving
+        sensors = {k.lower(): v for k, v in d["sensors"].items() if k in ("US0", "US1")}
+    elif n == "ARM":                                     # controller.py's fleet /status: servos, no sensors
+        st.update(mode="board connected" if d.get("connected") else "board unplugged",
+                  moving=False if d.get("connected") is False else None)
+        sensors = {}
     else:                                                # anyone else: the fields it happens to have
         st.update(moving=d.get("moving") if isinstance(d.get("moving"), bool) else None,
                   turning=d.get("turning") if isinstance(d.get("turning"), bool) else None,
@@ -77,7 +102,7 @@ def describe(st):
     elif st.get("moving") is False:
         bits.append("standing still")
     if st.get("mode"):
-        bits.append(f"{st['mode']} mode")
+        bits.append(st["mode"] if str(st["mode"]).startswith("board ") else f"{st['mode']} mode")
     if st.get("music") and st["music"] != "stopped":
         bits.append(f"music {st['music']}")
     return ", ".join(bits) or "it doesn't say"
@@ -213,18 +238,29 @@ class Checkups:
                 go, back = ("LEFT", "RIGHT") if sideways else ("FORWARD", "BACKWARD")
                 go, back = (lambda c=go: get("/cmd", v=c)), (lambda c=back: get("/cmd", v=c))
                 stop = lambda: get("/cmd", v="STOP")
+            elif n.startswith("WHIP"):
+                if r["state"].get("mode") != "web":
+                    return "it isn't in web mode."
+                if not pw:
+                    return "I don't have its PIN (Passwords.WHIP in my config.json)."
+                get("/unlock", pw=pw)
+                go, back = ("left", "right") if sideways else ("fwd", "bwd")
+                # a web command lasts 500 ms (WEB_CMD_TIMEOUT_MS): keep sending it for a whole step
+                walk = lambda c: [(get("/web", cmd=c), time.sleep(0.3)) for _ in range(int(WHIP_STEP_S / 0.3))]
+                go, back = (lambda c=go: walk(c)), (lambda c=back: walk(c))
+                stop = lambda: get("/web", cmd="stop")
             else:
                 return f"I don't know how to move {name} yet."
             move = lambda step: step() if callable(step) else get(step)
             move(go)
-            time.sleep(NUDGE_S)
+            time.sleep(0 if n.startswith("WHIP") else NUDGE_S)
             stop()
             time.sleep(0.6)                                 # let the sensors catch up
             self.robots[name]["polled"] = 0
             self.poll(name, url, "/sensors" if n == "NORA" else "/status")
             after = dict(self.robots[name]["sensors"])
             move(back)                                      # and back where she was
-            time.sleep(NUDGE_S)
+            time.sleep(0 if n.startswith("WHIP") else NUDGE_S)
             stop()
             if n == "NORA":
                 get("/motorlockOn")

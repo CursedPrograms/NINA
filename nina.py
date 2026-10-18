@@ -59,9 +59,16 @@ def load_config():
 CFG = load_config()
 PORT = CFG["Port"]
 RIFT = f"http://{CFG['RiftHost']}:{CFG['RiftPort']}"
+# The fleet's WiFi ladder (fleet_ladder.py, fleet TODO section 2): with "FleetLadder": true, NINA joins the
+# highest fleet network above her, or hosts "NINA" and the fleet list when none is up.
+from fleet_ladder import FleetLadder
+LADDER = FleetLadder(NAME, enabled=CFG.get("FleetLadder", False))
 TINA = CFG.get("TinaUrl", "http://127.0.0.1:5013").rstrip("/")
 TINA_EVERY_S = 30
 NORA = CFG["NoraHost"]
+# The fleet's WiFi ladder: whichever of these hosts, it's the fleet's network (fleet TODO, section 2)
+FLEET_SSIDS = {"RIFT", "DREAM", "NINA", "TINA", "NORACTL", "WHIPCTL", "KIDA01CTL", "KIDA00CTL", "ARMCTL", CFG.get("NoraSsid", "NORA"), "WHIP",
+               "KIDA01", "KIDA00", "MILA", "ARM"}
 
 # ---------------------------------------------------------------- her log
 events = deque(maxlen=300)
@@ -130,10 +137,12 @@ def timed_get(url, timeout=3):
 class Watch:
     def __init__(self):
         self.robots = {}            # name -> {"url", "up", "ms", "misses", "seen"}
-        self.nora = {"up": None, "ms": None, "uptime_s": None, "mode": None, "msrc": None, "page_ms": None}
+        self.nora = {"up": None, "ms": None, "uptime_s": None, "mode": None, "msrc": None, "page_ms": None,
+                     "busy": False, "misses": 0}
         self.ports = None
         self.wifi = None
         self.ips = []               # this PC's IPv4 addresses, the one it would reach NORA from first
+        self.nora_ip = None         # NORA's address in RIFT's /fleet (on the RIFT network); else NoraHost
         self.rift_up = None
         self._last_page_check = 0
 
@@ -154,6 +163,7 @@ class Watch:
             robots = r.json().get("robots", [])
         except ValueError:
             return
+        self.nora_ip = next((rb.get("ip") for rb in robots if rb.get("name") == "NORA" and rb.get("ip")), None)
         for rb in robots:
             name = rb.get("name")
             if not name or name == NAME or name == "NORA":   # NORA gets her own, closer look
@@ -196,18 +206,37 @@ class Watch:
 
     # -- NORA, closely
     def nora_check(self):
-        r, ms = timed_get(f"http://{NORA}:5002/talk", 3)
+        # Her ESP32 runs two web servers, one client at a time each. Her page and API (:5002) can be
+        # held for seconds by a browser that has her page open; her fleet registry (:5000) has its
+        # own slot. So :5002 silent while :5000 answers = busy, not gone; and one miss isn't gone either.
+        # Where: on the RIFT network RIFT's /fleet has her address (192.168.4.1 is RIFT itself then);
+        # on her own fallback AP she's NoraHost (192.168.4.1), and only a /ping saying "NORA" is her.
+        host = self.nora_ip or NORA
+        r, ms = timed_get(f"http://{host}:5002/talk", 4)
         if r is None or not r.ok:
+            p, _ = timed_get(f"http://{host}:5000/ping", 3)
+            if p is not None and p.ok and p.text.strip().upper().startswith("NORA"):
+                if not self.nora["busy"]:
+                    note("info", "NORA's web page is busy.",
+                         "Her fleet registry (:5000) answers but her page and API (:5002) didn't: "
+                         "someone has her page open, or it's slow. She's still there.", key="nora-busy")
+                if self.nora["up"] is False:
+                    note("info", "NORA is back.", speak=True, mission=True)
+                self.nora.update(up=True, busy=True, misses=0, ms=None)
+                return
+            self.nora["misses"] += 1
+            if self.nora["up"] is True and self.nora["misses"] < 2:
+                return                       # one miss: look again before calling her gone
             if self.nora["up"] is not False:
                 why = self.nora_why()
                 note("problem", "NORA isn't answering.", why, speak=True, mission=self.nora["up"] is True)
-            self.nora.update(up=False, ms=None)
+            self.nora.update(up=False, ms=None, busy=False)
             return
         if self.nora["up"] is False:
             note("info", "NORA is back.", speak=True, mission=True)
         elif self.nora["up"] is None:
             note("info", f"NORA is online ({ms} ms).")
-        self.nora.update(up=True, ms=ms)
+        self.nora.update(up=True, ms=ms, busy=False, misses=0)
         try:
             uptime = r.json().get("now", 0) / 1000
         except ValueError:
@@ -218,7 +247,7 @@ class Watch:
                  "A power dip? Check what was just switched on: UV, motors.", speak=True, mission=True)
         self.nora["uptime_s"] = uptime
 
-        s, _ = timed_get(f"http://{NORA}:5002/sensors", 3)
+        s, _ = timed_get(f"http://{host}:5002/sensors", 3)
         if s is not None and s.ok:
             try:
                 d = s.json()
@@ -231,27 +260,30 @@ class Watch:
                 lvl, why = ("info", f"Changed by {src}.") if src in ("web", "bt", "ir") else ("warn", f"Nobody I know changed it (source: {src}).")
                 note(lvl, f"NORA switched to {label} mode.", why, speak=lvl == "warn")
             self.nora.update(mode=mode, msrc=src)
-            checkups.take("NORA", f"http://{NORA}:5002", d)
+            checkups.take("NORA", f"http://{host}:5002", d)
             blind = [side for side, k in (("front", "F"), ("left", "L"), ("back", "B"), ("right", "R")) if d.get(k) == -1]
             self.nora["blind"] = blind[0] if len(blind) == 1 else None   # one sensor always silent = probably broken
 
-        if time.time() - self._last_page_check > 60:   # her full page: the slow one that used to block her
+        if time.time() - self._last_page_check > 300:  # her full page: the slow one that used to block her
+                                                       # (every 5 min: fetching it holds her :5002 too)
             self._last_page_check = time.time()
-            p, pms = timed_get(f"http://{NORA}:5002/", 15)
+            p, pms = timed_get(f"http://{host}:5002/", 15)
             self.nora["page_ms"] = pms if p is not None else None
             if p is not None and pms > CFG["SlowMs"]:
                 note("warn", f"NORA's web page took {pms / 1000:.1f} seconds.",
                      "Her loop is frozen while it sends - RIFT will think she's offline.", speak=True, key="nora-page")
 
     def nora_why(self):
-        """Why NORA might not answer: is it her, or is this PC just not on her network?"""
+        """Why NORA might not answer: is it her, or is this PC just not on the fleet's network? The fleet
+        network is whichever rung of the ladder hosts it (RIFT > DREAM > NINA > TINA > NORACTL > WHIPCTL > KIDA01CTL > KIDA00CTL > ARMCTL > NORA > WHIP >
+        KIDA01 > KIDA00 > ARM > MILA): always 192.168.4.x, its WiFi named after its host."""
         net = ipaddress.ip_network(f"{NORA}/24", strict=False)
-        if self.wifi == CFG["NoraSsid"] or any(ipaddress.ip_address(ip) in net for ip in self.ips):
+        if self.wifi in FLEET_SSIDS or any(ipaddress.ip_address(ip) in net for ip in self.ips):
             return "Her WiFi is gone - she may be off or rebooting."
         where = f" at {self.ips[0]}" if self.ips else ""
         mine = f"on {self.wifi}{where}" if self.wifi else f"on a cable{where}" if self.ips else "on no network at all"
-        return (f"This PC isn't on NORA's network: it's {mine}, and hers is {net.with_prefixlen.replace('0/24', 'x')}. "
-                f"Join her WiFi \"{CFG['NoraSsid']}\" to reach her.")
+        return (f"This PC isn't on the fleet's network: it's {mine}, and the fleet's is "
+                f"{net.with_prefixlen.replace('0/24', 'x')}. Join \"RIFT\" (or, without RIFT, \"NORA\") to reach her.")
 
     # -- this PC
     def pc(self):
@@ -264,7 +296,7 @@ class Watch:
             except (OSError, subprocess.SubprocessError):
                 pass
         if ssid != self.wifi and self.wifi is not None:
-            note("info", f"This PC moved to {ssid or 'no'} WiFi.", "" if ssid == CFG["NoraSsid"] else
+            note("info", f"This PC moved to {ssid or 'no'} WiFi.", "" if ssid in FLEET_SSIDS else
                  "NORA's network has no internet, so Windows may hop back to a known one.")
         self.wifi = ssid
         self.ips = _local_ips()
@@ -389,7 +421,8 @@ def heartbeat():
     registered = None
     while True:
         try:
-            r = requests.post(f"{RIFT}/register", data={"name": NAME, "type": "caretaker",
+            host = LADDER.registry_host()          # whoever hosts the network, on the ladder
+            r = requests.post(f"http://{host}:{CFG['RiftPort']}/register" if host else f"{RIFT}/register", data={"name": NAME, "type": "caretaker",
                                                          "capabilities": f"fleet_health,web:{PORT},talk:{PORT}"}, timeout=2)
             ok, why = r.ok, f"HTTP {r.status_code}"
         except requests.RequestException as e:
@@ -502,6 +535,7 @@ def chirp_route():
 
 
 def main():
+    LADDER.start()
     for target in (_speaker, watcher, heartbeat):
         threading.Thread(target=target, daemon=True, name=target.__name__).start()
     print(f"NINA on http://127.0.0.1:{PORT}/")

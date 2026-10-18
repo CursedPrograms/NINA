@@ -6,6 +6,7 @@
       "Port": 5012,
       "RiftHost": "127.0.0.1",
       "RiftPort": 5000,
+      "FleetLadder": false,
       "NoraHost": "192.168.4.1",
       "NoraSsid": "NORA",
       "CheckSeconds": 5,

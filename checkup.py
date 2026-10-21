@@ -15,6 +15,12 @@ StuckMinutes is a symptom. Then she asks the robot whether it's standing still:
     she saw and what would let her test it
 She only moves a robot that is standing still in manual mode, a short nudge out and
 back, and only with the key the user gave her (Passwords in config.json).
+
+She also watches for a robot in distress, and only warns (she never stops one herself):
+  - moving nonstop for DistressMinutes
+  - turning in nearly every reading for PanicMinutes: bouncing off walls
+  - moving while another robot's radio stays right on top of it for GluedMinutes (RIFT's
+    /near): something stuck to it, like RITA glued onto NORA
 """
 
 import re
@@ -31,6 +37,9 @@ DIST_KEY = re.compile(r"dist|ultra|sonar|range|front|back|left|right", re.I)
 NORA_MODES = ["manual", "auto", "line", "remote"]
 WHIP_MODES = ["obstacle", "ir", "web"]
 WHIP_STEP_S = 1.5           # WHIP walks: a 0.4 s nudge is less than a step
+PANIC_SHARE = 0.75          # turning in this share of the readings = panic laps
+GLUED_RSSI = -35            # dBm: stronger than this is right on top of her (very close starts at -45)
+DISTRESS_RECHECK_S = 30 * 60   # after a distress warning, the same one waits this long
 
 
 def dead(v):
@@ -116,6 +125,12 @@ class Checkups:
         self.robots = {}          # name -> {"url", "state", "sensors", "at", "polled"}
         self.watch = {}           # (name, sensor) -> {"value", "since", "next"}
         self._busy = set()        # robots being checked right now
+        self.distress_s = cfg.get("DistressMinutes", 15) * 60   # 0 = off, for each of the three
+        self.panic_s = cfg.get("PanicMinutes", 3) * 60
+        self.glued_s = cfg.get("GluedMinutes", 5) * 60
+        self.moves = {}           # name -> {"since": moving since, "turns": [(t, turning)]}
+        self.glued = {}           # (name, other) -> since when the other's radio is on top of it
+        self.warned = {}          # distress warning -> not again before
 
     # ---- readings in
     def poll(self, name, url, path="/status"):
@@ -159,6 +174,7 @@ class Checkups:
         if old and describe(old) != describe(state):
             self.note("info", f"{name}: {describe(state)}.")
         r.update(state=state, sensors=sensors, at=now)
+        self._distress(name, state, now)
         for label, v in sensors.items():
             w = self.watch.setdefault((name, label), {"value": v, "since": now, "next": 0})
             if v != w["value"]:
@@ -169,6 +185,57 @@ class Checkups:
                 self._busy.add(name)
                 threading.Thread(target=self._checkup, args=(name, label, v, now - w["since"]),
                                  daemon=True, name=f"checkup-{name}").start()
+
+    # ---- distress: warn only
+    def _warn(self, key, now, text, why):
+        if now < self.warned.get(key, 0):
+            return
+        self.warned[key] = now + DISTRESS_RECHECK_S
+        self.note("problem", text, why, speak=True, mission=True)
+
+    def _distress(self, name, st, now):
+        m = self.moves.setdefault(name, {"since": None, "turns": []})
+        if st.get("moving") is False or st.get("wheels_locked"):
+            m["since"], m["turns"] = None, []
+            return
+        if st.get("moving") is not True:
+            return                                       # it doesn't say: keep what we had
+        m["since"] = m["since"] or now
+        if self.distress_s and now - m["since"] >= self.distress_s:
+            self._warn(f"run-{name}", now, f"{name} has been moving nonstop for {int((now - m['since']) // 60)} min.",
+                       "If that isn't on purpose (something stuck to her, a sensor fooling her), "
+                       "lock her wheels: RIFT's Lock all, or her own lock.")
+        if st.get("turning") is not None:
+            m["turns"] = [t for t in m["turns"] if now - t[0] <= self.panic_s] + [(now, bool(st["turning"]))]
+            turns = m["turns"]
+            if (self.panic_s and len(turns) >= 4 and now - turns[0][0] >= self.panic_s * 0.9
+                    and sum(t for _, t in turns) / len(turns) >= PANIC_SHARE):
+                self._warn(f"panic-{name}", now, f"{name} keeps turning: {int(self.panic_s // 60)} min of laps, "
+                           "like she's bouncing off walls.", "Is she trapped, or running from something? "
+                           "Have a look, and lock her wheels if she's in trouble.")
+
+    def near(self, data, now=None):
+        """RIFT's /near: whose radio each robot hears, how strongly. A robot that's moving while
+        another stays right on top of it for GluedMinutes has something stuck to it."""
+        now = now or time.time()
+        seen = set()
+        for name, st in ((data or {}).get("robots") or {}).items():
+            moving = self.robots.get(name, {}).get("state", {}).get("moving")
+            for peer in (st or {}).get("robots", []) or []:
+                other, rssi = peer.get("name"), peer.get("rssi")
+                if not other or not isinstance(rssi, (int, float)) or rssi < GLUED_RSSI or moving is not True:
+                    continue
+                key = (name, other)
+                seen.add(key)
+                since = self.glued.setdefault(key, now)
+                if self.glued_s and now - since >= self.glued_s:
+                    self._warn(f"glued-{name}-{other}", now,
+                               f"{other}'s radio has been right on top of {name} for {int((now - since) // 60)} min "
+                               f"({rssi:g} dBm) while she moves.",
+                               f"Is {other} stuck to her? She can't get away from it. Lock her wheels if so.")
+        for key in list(self.glued):
+            if key not in seen:
+                del self.glued[key]
 
     # ---- the checkup
     def _checkup(self, name, label, v, for_s):

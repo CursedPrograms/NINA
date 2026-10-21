@@ -17,6 +17,9 @@
       "MissionLog": true,
       "TinaUrl": "http://127.0.0.1:5013",
       "StuckMinutes": 10,
+      "DistressMinutes": 15,
+      "PanicMinutes": 3,
+      "GluedMinutes": 5,
       "Passwords": {
         "NORA": "",
         "MILA": ""

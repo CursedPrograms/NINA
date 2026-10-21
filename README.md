@@ -64,6 +64,8 @@ She also watches their distance sensors. One that reads nothing (0, -1, 999) or 
 She only moves a robot that is standing still in manual mode, and only with the key you give her in
 `Passwords` (NORA's wheel-lock password, MILA's and WHIP's PINs). Without it she never moves anyone.
 
+
+**A robot in distress.** She also watches for a robot in trouble, and only warns you, out loud and in the mission log: she never stops a robot herself. A robot moving nonstop for `DistressMinutes`, turning in nearly every reading for `PanicMinutes` (bouncing off walls), or moving while another robot's radio stays right on top of it for `GluedMinutes` (stronger than -35 dBm in RIFT's `/near`: something stuck to it, like RITA glued onto NORA). The same warning waits 30 minutes before she says it again. Lock the robot with RIFT's **Lock all**, or its own lock.
 ## Running
 
 ```bat
@@ -89,6 +91,9 @@ She registers with RIFT every 10 s (`type: caretaker`, `web:5012`, `talk:5012`),
 | `MissionLog` | on | write problems to RIFT's mission log |
 | `TinaUrl` | `http://127.0.0.1:5013` | where TINA is, for her fleet news |
 | `StuckMinutes` | `10` | a sensor on one value this long gets a checkup |
+| `DistressMinutes` | `15` | a robot moving nonstop this long: she warns you (`0` = off) |
+| `PanicMinutes` | `3` | turning in nearly every reading this long (bouncing off walls): she warns you |
+| `GluedMinutes` | `5` | another robot's radio right on top of a moving one this long: she warns you |
 | `Passwords` | empty | `NORA` / `MILA` / `WHIP` keys, so she may move them a little to test a sensor |
 
 ## API

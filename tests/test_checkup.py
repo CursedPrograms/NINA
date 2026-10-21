@@ -137,3 +137,70 @@ def test_whip_checkup_no_pin_dead_sensor(whip):
     c, notes = nina(whip, "")
     c.checkup("WHIP", "front", 0.0, 900)
     assert any(level == "warn" and "couldn't test it" in text and "PIN" in text for level, text, _ in notes)
+
+
+# ---------------------------------------------------------------- distress: she only warns
+def _distress_checkups():
+    notes = []
+    c = Checkups({"DistressMinutes": 15, "PanicMinutes": 3, "GluedMinutes": 5},
+                 lambda level, text, why="", speak=False, mission=False, key=None: notes.append((level, text, speak, mission)))
+    return c, notes
+
+
+def _feed(c, name, secs, every=15, t0=1000.0, **state):
+    st = {"moving": None, "turning": None, "wheels_locked": None, "music": None, "mode": None, **state}
+    for i in range(int(secs // every) + 1):
+        c.feed(name, dict(st), {}, now=t0 + i * every)
+    return t0 + secs
+
+
+def test_moving_nonstop_warns_once():
+    c, notes = _distress_checkups()
+    _feed(c, "NORA", 14 * 60, moving=True)
+    assert not [n for n in notes if n[0] == "problem"]
+    _feed(c, "NORA", 20 * 60, moving=True)
+    warns = [n for n in notes if "nonstop" in n[1]]
+    assert len(warns) == 1 and warns[0][2] and warns[0][3]     # spoken, in the mission log, once
+
+
+def test_stopping_resets_it():
+    c, notes = _distress_checkups()
+    t = _feed(c, "MILA", 10 * 60, moving=True)
+    c.feed("MILA", {"moving": False}, {}, now=t + 15)
+    _feed(c, "MILA", 10 * 60, t0=t + 30, moving=True)
+    assert not [n for n in notes if "nonstop" in n[1]]
+
+
+def test_panic_laps_warn():
+    c, notes = _distress_checkups()
+    _feed(c, "MILA", 4 * 60, moving=True, turning=True)
+    assert [n for n in notes if "keeps turning" in n[1]]
+
+
+def test_normal_driving_isnt_panic():
+    c, notes = _distress_checkups()
+    for i in range(20):        # turning now and then
+        c.feed("MILA", {"moving": True, "turning": i % 3 == 0}, {}, now=1000 + i * 15)
+    assert not [n for n in notes if "keeps turning" in n[1]]
+
+
+def test_glued_radio_warns_only_while_she_moves():
+    c, notes = _distress_checkups()
+    near = {"robots": {"NORA": {"robots": [{"name": "RITA", "rssi": -28}, {"name": "WHIP", "rssi": -60}]}}}
+    c.feed("NORA", {"moving": False}, {}, now=1000)
+    c.near(near, now=1000)
+    c.near(near, now=1000 + 6 * 60)
+    assert not [n for n in notes if "on top of" in n[1]]        # parked next to it: fine
+    c.feed("NORA", {"moving": True}, {}, now=2000)
+    c.near(near, now=2000)
+    c.near(near, now=2000 + 6 * 60)
+    warns = [n for n in notes if "on top of" in n[1]]
+    assert len(warns) == 1 and "RITA" in warns[0][1] and "WHIP" not in warns[0][1]
+
+
+def test_distress_off_with_zero():
+    notes = []
+    c = Checkups({"DistressMinutes": 0, "PanicMinutes": 0, "GluedMinutes": 0},
+                 lambda level, text, *a, **k: notes.append(text))
+    _feed(c, "NORA", 30 * 60, moving=True, turning=True)
+    assert not notes

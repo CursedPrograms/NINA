@@ -65,6 +65,7 @@ from fleet_ladder import FleetLadder
 LADDER = FleetLadder(NAME, enabled=CFG.get("FleetLadder", False))
 TINA = CFG.get("TinaUrl", "http://127.0.0.1:5013").rstrip("/")
 TINA_EVERY_S = 30
+NEAR_S = 30              # RIFT's /near (who's on top of whom), this often
 NORA = CFG["NoraHost"]
 # The fleet's WiFi ladder: whichever of these hosts, it's the fleet's network (fleet TODO, section 2)
 FLEET_SSIDS = {"RIFT", "DREAM", "NINA", "TINA", "NORACTL", "WHIPCTL", "KIDA01CTL", "KIDA00CTL", "ARMCTL", CFG.get("NoraSsid", "NORA"), "WHIP",
@@ -145,6 +146,7 @@ class Watch:
         self.nora_ip = None         # NORA's address in RIFT's /fleet (on the RIFT network); else NoraHost
         self.rift_up = None
         self._last_page_check = 0
+        self._last_near = 0
 
     # -- the fleet, through RIFT
     def fleet(self):
@@ -178,6 +180,14 @@ class Watch:
                 del self.robots[name]
                 continue
             self._probe(name, st)
+        if time.time() - self._last_near >= NEAR_S:   # who's on top of whom: checkups.near
+            self._last_near = time.time()
+            r, _ = timed_get(f"{RIFT}/near", 6)
+            try:
+                if r is not None and r.ok:
+                    checkups.near(r.json())
+            except ValueError:
+                pass
 
     def _probe(self, name, st):
         if not st["url"]:

@@ -1,25 +1,28 @@
 <p align="center"><img src="images/avatar_round.png" width="160" alt="NINA"></p>
 
-[![Twitter: @NorowaretaGemu](https://img.shields.io/badge/X-@NorowaretaGemu-blue.svg?style=flat)](https://x.com/NorowaretaGemu)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<h1 align="center">NINA</h1>
+<h3 align="center">Network Inspector & Notification Assistant</h3>
+<p align="center"><i>A DREAM Robotics Caretaker</i></p>
+
+<div align="center">
+
+[![Twitter: @NorowaretaGemu](https://img.shields.io/badge/X-@NorowaretaGemu-blue.svg?style=flat)](https://x.com/NorowaretaGemu) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+</div>
 
 <div align="center">
   <a href="https://ko-fi.com/cursedentertainment">
-    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="ko-fi" style="width: 20%;"/>
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="ko-fi" width="180"/>
   </a>
 </div>
+
 <div align="center">
   <img alt="Python" src="https://img.shields.io/badge/python%20-%23323330.svg?&style=for-the-badge&logo=python&logoColor=white"/>
   <img alt="Flask" src="https://img.shields.io/badge/flask%20-%23323330.svg?&style=for-the-badge&logo=flask&logoColor=white"/>
-</div>
-<div align="center">
   <img alt="Git" src="https://img.shields.io/badge/git%20-%23323330.svg?&style=for-the-badge&logo=git&logoColor=white"/>
 </div>
 
 ---
-
-# NINA
-## Network Inspector & Notification Assistant
 
 - Robot Type: Caretaker (software, runs on the PC beside RIFT)
 
@@ -31,6 +34,39 @@
 **Site:** [cursedprograms.github.io/NINA](https://cursedprograms.github.io/NINA/)
 
 The fleet's caretaker. NINA watches every robot and says what's wrong, and why, before you have to go looking.
+
+---
+
+<div align="center">
+  <img src="images/screenshots/dashboard.png" alt="NINA's dashboard" width="640"/>
+</div>
+
+**Windows app:** [`builds/NINA-Controller.exe`](builds/NINA-Controller.exe) opens NINA's page in a window and starts `run.bat` if she isn't running. Keep it in `builds/`. Source: `scripts/web_controller`.
+
+---
+
+## Related Projects
+
+
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/CursedPrograms/ARIA-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/ARIA-Robot-v00/main/images/avatar_round.png" width="72" alt="ARIA"><br>ARIA</a></td>
+    <td align="center"><a href="https://github.com/CursedPrograms/KIDA-Robot-v01"><img src="https://raw.githubusercontent.com/CursedPrograms/KIDA-Robot-v01/main/images/avatar_round.png" width="72" alt="KIDA-01"><br>KIDA-01</a></td>
+    <td align="center"><a href="https://github.com/CursedPrograms/KIDA-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/KIDA-Robot-v00/main/images/avatar_round.png" width="72" alt="KIDA-00"><br>KIDA-00</a></td>
+    <td align="center"><a href="https://github.com/CursedPrograms/WHIP-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/WHIP-Robot-v00/main/images/avatar_round.png" width="72" alt="WHIP"><br>WHIP</a></td>
+    <td align="center"><a href="https://github.com/CursedPrograms/NORA-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/NORA-Robot-v00/main/images/avatar_round.png" width="72" alt="NORA"><br>NORA</a></td>
+    <td align="center"><a href="https://github.com/CursedPrograms/MILA-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/MILA-Robot-v00/main/images/avatar_round.png" width="72" alt="MILA"><br>MILA</a></td>
+    <td align="center"><a href="https://github.com/CursedPrograms/NIKA-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/NIKA-Robot-v00/main/images/avatar_round.png" width="72" alt="NIKA"><br>NIKA</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/CursedPrograms/IDA-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/IDA-Robot-v00/main/images/avatar_round.png" width="72" alt="IDA"><br>IDA</a></td>
+    <td align="center"><a href="https://github.com/CursedPrograms/ARM-Robot-v01"><img src="https://raw.githubusercontent.com/CursedPrograms/ARM-Robot-v01/main/images/avatar_round.png" width="72" alt="ARM"><br>ARM</a></td>
+    <td align="center"><a href="https://github.com/CursedPrograms/DREAM"><img src="https://raw.githubusercontent.com/CursedPrograms/DREAM/main/images/avatar_round.png" width="72" alt="DREAM"><br>DREAM</a></td>
+    <td align="center"><a href="https://github.com/CursedPrograms/RIFT"><img src="https://raw.githubusercontent.com/CursedPrograms/RIFT/main/images/avatar_round.png" width="72" alt="RIFT"><br>RIFT</a></td>
+    <td align="center"><a href="https://github.com/CursedPrograms/RITA"><img src="https://raw.githubusercontent.com/CursedPrograms/RITA/main/images/avatar_round.png" width="72" alt="RITA"><br>RITA</a></td>
+    <td align="center"><a href="https://github.com/CursedPrograms/TINA"><img src="https://raw.githubusercontent.com/CursedPrograms/TINA/main/images/avatar_round.png" width="72" alt="TINA"><br>TINA</a></td>
+  </tr>
+</table>
 
 ---
 
@@ -64,8 +100,10 @@ She also watches their distance sensors. One that reads nothing (0, -1, 999) or 
 She only moves a robot that is standing still in manual mode, and only with the key you give her in
 `Passwords` (NORA's wheel-lock password, MILA's and WHIP's PINs). Without it she never moves anyone.
 
-
 **A robot in distress.** She also watches for a robot in trouble, and only warns you, out loud and in the mission log: she never stops a robot herself. A robot moving nonstop for `DistressMinutes`, turning in nearly every reading for `PanicMinutes` (bouncing off walls), or moving while another robot's radio stays right on top of it for `GluedMinutes` (stronger than -35 dBm in RIFT's `/near`: something stuck to it, like RITA glued onto NORA). The same warning waits 30 minutes before she says it again. Lock the robot with RIFT's **Lock all**, or its own lock.
+
+---
+
 ## Running
 
 ```bat
@@ -75,6 +113,8 @@ run.bat
 `run.bat` sets up `venv` the first time, then starts NINA. Her page is at **http://127.0.0.1:5012/**.
 
 She registers with RIFT every 10 s (`type: caretaker`, `web:5012`, `talk:5012`), so she shows up on RIFT's dashboard and in MILA's fleet list, and joins the Brainfuck conversations (`GET /chirp?u=0-13` beeps the phrase on the PC speaker, in her own pitch).
+
+---
 
 ## Settings
 
@@ -96,56 +136,28 @@ She registers with RIFT every 10 s (`type: caretaker`, `web:5012`, `talk:5012`),
 | `GluedMinutes` | `5` | another robot's radio right on top of a moving one this long: she warns you |
 | `Passwords` | empty | `NORA` / `MILA` / `WHIP` keys, so she may move them a little to test a sensor |
 
+---
+
 ## API
 
 - `GET /status`: everything she knows (robots, NORA, WiFi, ports, recent events)
 - `GET /events`: her log, newest first
 - `GET /ping`, `GET /chirp?u=0-13`
 
+---
+
 ## Colours
 
 Her colours come from her avatar (`colour_scheme.xml`): slate blue-grey surfaces, her red-cross red as the accent, her crimson dress and a warm cream. Her page, her options menu and the site all use them.
 
-**Windows app:** [`builds/NINA-Controller.exe`](builds/NINA-Controller.exe) opens NINA's page in a window and starts `run.bat` if she isn't running. Keep it in `builds/`. Source: `scripts/web_controller`.
-
-<div align="center">
-  <img src="images/screenshots/dashboard.png" alt="NINA's dashboard" width="640"/>
-</div>
-
-## Related Projects
-
-<table>
-  <tr>
-    <td align="center"><a href="https://github.com/CursedPrograms/ARIA-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/ARIA-Robot-v00/main/images/avatar_round.png" width="72" alt="ARIA"><br>ARIA</a></td>
-    <td align="center"><a href="https://github.com/CursedPrograms/KIDA-Robot-v01"><img src="https://raw.githubusercontent.com/CursedPrograms/KIDA-Robot-v01/main/images/avatar_round.png" width="72" alt="KIDA-01"><br>KIDA-01</a></td>
-    <td align="center"><a href="https://github.com/CursedPrograms/KIDA-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/KIDA-Robot-v00/main/images/avatar_round.png" width="72" alt="KIDA-00"><br>KIDA-00</a></td>
-    <td align="center"><a href="https://github.com/CursedPrograms/WHIP-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/WHIP-Robot-v00/main/images/avatar_round.png" width="72" alt="WHIP"><br>WHIP</a></td>
-    <td align="center"><a href="https://github.com/CursedPrograms/NORA-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/NORA-Robot-v00/main/images/avatar_round.png" width="72" alt="NORA"><br>NORA</a></td>
-    <td align="center"><a href="https://github.com/CursedPrograms/MILA-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/MILA-Robot-v00/main/images/avatar_round.png" width="72" alt="MILA"><br>MILA</a></td>
-    <td align="center"><a href="https://github.com/CursedPrograms/NIKA-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/NIKA-Robot-v00/main/images/avatar_round.png" width="72" alt="NIKA"><br>NIKA</a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/CursedPrograms/IDA-Robot-v00"><img src="https://raw.githubusercontent.com/CursedPrograms/IDA-Robot-v00/main/images/avatar_round.png" width="72" alt="IDA"><br>IDA</a></td>
-    <td align="center"><a href="https://github.com/CursedPrograms/ARM-Robot-v01"><img src="https://raw.githubusercontent.com/CursedPrograms/ARM-Robot-v01/main/images/avatar_round.png" width="72" alt="ARM"><br>ARM</a></td>
-    <td align="center"><a href="https://github.com/CursedPrograms/DREAM"><img src="https://raw.githubusercontent.com/CursedPrograms/DREAM/main/images/avatar_round.png" width="72" alt="DREAM"><br>DREAM</a></td>
-    <td align="center"><a href="https://github.com/CursedPrograms/RIFT"><img src="https://raw.githubusercontent.com/CursedPrograms/RIFT/main/images/avatar_round.png" width="72" alt="RIFT"><br>RIFT</a></td>
-    <td align="center"><a href="https://github.com/CursedPrograms/RITA"><img src="https://raw.githubusercontent.com/CursedPrograms/RITA/main/images/avatar_round.png" width="72" alt="RITA"><br>RITA</a></td>
-    <td align="center"><a href="https://github.com/CursedPrograms/TINA"><img src="https://raw.githubusercontent.com/CursedPrograms/TINA/main/images/avatar_round.png" width="72" alt="TINA"><br>TINA</a></td>
-  </tr>
-</table>
-
 ---
 
-<br>
+<div align="center">&copy; Cursed Entertainment 2026</div>
+
 <div align="center">
-&copy; Cursed Entertainment 2026
-</div>
-<br>
-<div align="center">
-<a href="https://cursed-entertainment.itch.io/" target="_blank">
-    <img src="https://github.com/CursedPrograms/cursedentertainment/raw/main/images/logos/logo-wide-grey.png"
-        alt="CursedEntertainment Logo" style="width:250px;">
-</a>
+  <a href="https://cursed-entertainment.itch.io/">
+    <img src="https://github.com/CursedPrograms/cursedentertainment/raw/main/images/logos/logo-wide-grey.png" alt="Cursed Entertainment" width="250"/>
+  </a>
 </div>
 
 ---

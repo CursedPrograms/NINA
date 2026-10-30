@@ -36,6 +36,8 @@
     .warn b { color: var(--warn); } .problem b { color: var(--problem); } .info b { color: var(--text); font-weight: normal; }
     .empty { color: var(--text-dim); padding: 14px; }
   </style>
+  <link rel="stylesheet" href="/site/ir.css">
+  <script src="/site/ir.js" defer></script>
 </head>
 <body>
   <header>
@@ -59,6 +61,26 @@
       <button id="story-btn" style="background:var(--bg);color:var(--accent);border:1px solid var(--accent);padding:6px 14px;font-family:var(--font);cursor:pointer">TELL ME A STORY</button>
     </div>
     <p id="story" style="margin-top:12px;line-height:1.7;white-space:pre-wrap"></p>
+  </div>
+
+  <div class="card" id="irBox" style="margin-bottom:18px">
+    <h2>IR reader</h2>
+    <div>Read a remote's button codes through an Arduino on this PC, with an IR receiver wired to it.</div>
+    <div class="ir-row">
+      <select id="irPort" aria-label="board"></select>
+      <button id="irStart" type="button">START READING</button>
+      <select id="irPin" aria-label="receiver pin">
+        <option value="6">pin 6</option>
+        <option value="A3">pin A3: MILA, NIKA</option>
+        <option value="11">pin 11: IDA</option>
+      </select>
+      <button id="irFlash" type="button">FLASH THE READER</button>
+      <button id="irWho" type="button" title="Asks every free board who it is. Opening a port resets its Arduino.">WHO'S THERE</button>
+    </div>
+    <div id="irNote">Not reading</div>
+    <div id="irBoards"></div>
+    <div id="irCodes"></div>
+    <pre id="irLog"></pre>
   </div>
 
   <div class="card" style="margin-bottom:8px;border:none;background:none;padding:0"><h2>What I've noticed</h2></div>

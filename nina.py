@@ -11,7 +11,8 @@ puzzled over:
              mode with who changed it (/sensors mode + msrc)
   this PC    which WiFi it's on (NORA unreachable because the PC is on another
              network?), and the serial ports coming and going
-  ports      listed only, never opened: opening a port resets an Arduino and
+  ports      listed only, never opened by the watch (the IR reader and WHO'S THERE only when
+             you press them): opening a port resets an Arduino and
              fights the program that owns it (that's how the ARM lost COM11)
   checkups   every robot's state (moving, turning, wheels locked, music, mode)
              and its distance sensors. A sensor stuck on one value or reading
@@ -46,6 +47,7 @@ from flask import Flask, jsonify, render_template, request, send_from_directory
 
 import story
 from checkup import Checkups
+from ir_reader import IrReader
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 NAME = "NINA"
@@ -497,6 +499,54 @@ def report():
 @app.route("/checkups")
 def checkups_now():
     return jsonify(checkups.status())
+
+
+# ---- the IR reader: a board on this PC, this PC only, because it can flash that board ----
+ir = IrReader()
+
+
+def _local_only():
+    return request.remote_addr in ("127.0.0.1", "::1")
+
+
+@app.route("/site/<path:name>")
+def site_file(name):
+    return send_from_directory(os.path.join(os.path.dirname(os.path.abspath(__file__)), "site"), name)
+
+
+@app.route("/ir")
+def ir_state():
+    return jsonify(ir.state())
+
+
+@app.route("/ir/start", methods=["POST"])
+def ir_start():
+    if not _local_only():
+        return jsonify({"ok": False, "error": "this PC only"}), 403
+    return jsonify({"ok": ir.start(str((request.get_json(silent=True) or {}).get("port", "")))})
+
+
+@app.route("/ir/stop", methods=["POST"])
+def ir_stop():
+    ir.stop()
+    return jsonify({"ok": True})
+
+
+@app.route("/ir/boards", methods=["POST"])
+def ir_boards():
+    if not _local_only():
+        return jsonify({"ok": False, "error": "this PC only"}), 403
+    threading.Thread(target=ir.ask_boards, daemon=True).start()
+    return jsonify({"ok": True})
+
+
+@app.route("/ir/flash", methods=["POST"])
+def ir_flash():
+    if not _local_only():
+        return jsonify({"ok": False, "error": "this PC only"}), 403
+    body = request.get_json(silent=True) or {}
+    threading.Thread(target=ir.flash, args=(str(body.get("port", "")), str(body.get("pin", ""))), daemon=True).start()
+    return jsonify({"ok": True})
 
 
 @app.route("/ping")

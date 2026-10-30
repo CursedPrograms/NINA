@@ -1,0 +1,13 @@
+/* NINA's IR reader */
+#irBox .ir-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
+#irBox select, #irBox button {
+  padding: 7px 10px; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+  border-radius: 4px; font: inherit; cursor: pointer;
+}
+#irBox button:hover { border-color: var(--accent); color: var(--accent); }
+#irNote { color: var(--text-sec, var(--text-dim)); margin: 6px 0; }
+#irNote.ir-bad { color: var(--accent); }
+#irCodes { display: flex; flex-wrap: wrap; gap: 8px; min-height: 34px; margin: 8px 0; }
+#irCodes b { padding: 4px 10px; border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); font-size: 1.1rem; }
+#irCodes span { color: var(--text-dim); }
+#irLog { max-height: 140px; overflow: auto; margin: 0; font-size: 0.75rem; color: var(--text-dim); white-space: pre-wrap; }

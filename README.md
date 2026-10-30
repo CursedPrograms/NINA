@@ -45,6 +45,10 @@ The fleet's caretaker. NINA watches every robot and says what's wrong, and why, 
 
 ---
 
+**IR reader:** read a remote's button codes from her page, through an Arduino on this PC with an IR receiver wired to it. Pick the port and press START READING. FLASH THE READER puts `scripts/ir_reader` on the board first, with the receiver on pin 6, A3 (MILA, NIKA) or 11 (IDA). It replaces what's on that board, so it asks first, and only this PC can do it.
+
+**Handshake:** NINA uses the fleet's `WHO` handshake, in `board_id.py`, the same as ARM and DREAM. Her reader answers `I am Nina`, so her page shows when the board's really talking to her. WHO'S THERE asks every free board and shows which is which, such as ARM's and DREAM's. Opening a port resets its Arduino, so NINA never does that by herself, only when you press it.
+
 ## Related Projects
 
 

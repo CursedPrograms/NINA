@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 config.json.bak
 models/
+
+# Controllers, built and kept
+!builds/
+!builds/*.exe

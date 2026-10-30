@@ -106,6 +106,10 @@ She registers with RIFT every 10 s (`type: caretaker`, `web:5012`, `talk:5012`),
 
 Her colours come from her avatar (`colour_scheme.xml`): slate blue-grey surfaces, her red-cross red as the accent, her crimson dress and a warm cream. Her page, her options menu and the site all use them.
 
+<div align="center">
+  <img src="images/screenshots/dashboard.png" alt="NINA's dashboard" width="640"/>
+</div>
+
 ## Related Projects
 
 - [ARIA-Robot-v00](https://github.com/CursedPrograms/ARIA-Robot-v00)

@@ -108,11 +108,19 @@ Her colours come from her avatar (`colour_scheme.xml`): slate blue-grey surfaces
 
 ## Related Projects
 
-- [RIFT](https://github.com/CursedPrograms/RIFT)
+- [ARIA-Robot-v00](https://github.com/CursedPrograms/ARIA-Robot-v00)
+- [KIDA-Robot-v01](https://github.com/CursedPrograms/KIDA-Robot-v01)
+- [KIDA-Robot-v00](https://github.com/CursedPrograms/KIDA-Robot-v00)
+- [WHIP-Robot-v00](https://github.com/CursedPrograms/WHIP-Robot-v00)
 - [NORA-Robot-v00](https://github.com/CursedPrograms/NORA-Robot-v00)
+- [MILA-Robot-v00](https://github.com/CursedPrograms/MILA-Robot-v00)
+- [NIKA-Robot-v00](https://github.com/CursedPrograms/NIKA-Robot-v00)
+- [IDA-Robot-v00](https://github.com/CursedPrograms/IDA-Robot-v00)
+- [ARM-Robot-v01](https://github.com/CursedPrograms/ARM-Robot-v01)
 - [DREAM](https://github.com/CursedPrograms/DREAM)
-- [MILA](https://github.com/CursedPrograms/MILA)
+- [RIFT](https://github.com/CursedPrograms/RIFT)
 - [RITA](https://github.com/CursedPrograms/RITA)
+- [TINA](https://github.com/CursedPrograms/TINA)
 
 ---
 

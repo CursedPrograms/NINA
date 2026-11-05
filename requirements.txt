@@ -4,3 +4,4 @@ pyserial
 pygame
 numpy
 pytest
+hindsight-client==0.10.2

@@ -49,8 +49,9 @@ The fleet's caretaker. NINA watches every robot and says what's wrong, and why, 
 
 **Handshake:** NINA uses the fleet's `WHO` handshake, in `board_id.py`, the same as ARM and DREAM. Her reader answers `I am Nina`, so her page shows when the board's really talking to her. WHO'S THERE asks every free board and shows which is which, such as ARM's and DREAM's. Opening a port resets its Arduino, so NINA never does that by herself, only when you press it.
 
-## Related Projects
+---
 
+## Related Projects
 
 <table>
   <tr>
@@ -74,7 +75,9 @@ The fleet's caretaker. NINA watches every robot and says what's wrong, and why, 
 
 ---
 
-## What she watches
+## Overview
+
+**Website: <https://cursedprograms.github.io/NINA/>**
 
 | | What | Why |
 | :--- | :--- | :--- |
@@ -108,7 +111,7 @@ She only moves a robot that is standing still in manual mode, and only with the 
 
 ---
 
-## Running
+## Quick start
 
 ```bat
 run.bat
@@ -134,6 +137,7 @@ She registers with RIFT every 10 s (`type: caretaker`, `web:5012`, `talk:5012`),
 | `Speak` / `Voice` / `VoicePitch` | on / Zira / `0.85` | her voice and her chirp pitch |
 | `MissionLog` | on | write problems to RIFT's mission log |
 | `TinaUrl` | `http://127.0.0.1:5013` | where TINA is, for her fleet news |
+| `Memory` / `HindsightUrl` | on / `auto` | the fleet's memory, which DREAM hosts: her warnings and problems go there every 15 minutes (bank `nina`), and when a problem comes up she checks whether it has happened before. `auto` finds DREAM through RIFT ([how it works](https://github.com/CursedPrograms/DREAM#the-fleets-memory-hindsight)) |
 | `StuckMinutes` | `10` | a sensor on one value this long gets a checkup |
 | `DistressMinutes` | `15` | a robot moving nonstop this long: she warns you (`0` = off) |
 | `PanicMinutes` | `3` | turning in nearly every reading this long (bouncing off walls): she warns you |
@@ -146,6 +150,8 @@ She registers with RIFT every 10 s (`type: caretaker`, `web:5012`, `talk:5012`),
 
 - `GET /status`: everything she knows (robots, NORA, WiFi, ports, recent events)
 - `GET /events`: her log, newest first
+- `GET /memory`: where the fleet's memory is and what's waiting to be sent
+- `GET /memory/recall?q=NORA went quiet`: what she remembers about it
 - `GET /ping`, `GET /chirp?u=0-13`
 
 ---
@@ -153,6 +159,10 @@ She registers with RIFT every 10 s (`type: caretaker`, `web:5012`, `talk:5012`),
 ## Colours
 
 Her colours come from her avatar (`colour_scheme.xml`): slate blue-grey surfaces, her red-cross red as the accent, her crimson dress and a warm cream. Her page, her options menu and the site all use them.
+
+---
+
+<!-- DREAM-ECOSYSTEM:START -->
 
 ---
 
@@ -166,7 +176,6 @@ Her colours come from her avatar (`colour_scheme.xml`): slate blue-grey surfaces
 
 ---
 
-<!-- DREAM-ECOSYSTEM:START -->
 ## The DREAM Robotics ecosystem
 
 **Minds** — [DREAM](https://github.com/CursedPrograms/DREAM) companion · [TINA](https://github.com/CursedPrograms/TINA) engineer · [NINA](https://github.com/CursedPrograms/NINA) caretaker · [RIFT](https://github.com/CursedPrograms/RIFT) fleet hub · [LYCEA](https://github.com/CursedPrograms/LYCEA) training school  

@@ -43,10 +43,13 @@ import time
 from collections import deque
 
 import requests
+
+from dream_tls import tls
 from flask import Flask, jsonify, render_template, request, send_from_directory
 
 import story
 from checkup import Checkups
+from fleet_memory import Digest, FleetMemory
 from ir_reader import IrReader
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -73,6 +76,15 @@ NORA = CFG["NoraHost"]
 FLEET_SSIDS = {"RIFT", "DREAM", "NINA", "TINA", "NORACTL", "WHIPCTL", "KIDA01CTL", "KIDA00CTL", "ARMCTL", CFG.get("NoraSsid", "NORA"), "WHIP",
                "KIDA01", "KIDA00", "MILA", "ARM"}
 
+# ---------------------------------------------------------------- her memory
+# The fleet's long-term memory: the Hindsight server DREAM hosts (fleet_memory.py, master copy in
+# RIFT/Fleet/). Her warnings and problems go there as a digest every 15 minutes (bank "nina"), and
+# when a problem comes up she asks it whether it has happened before.
+MEMORY = FleetMemory("nina", url=CFG.get("HindsightUrl", "auto"), rift=RIFT, enabled=CFG.get("Memory", True),
+                     pending=os.path.join(HERE, "memory_pending.jsonl"))
+DIGEST = Digest(MEMORY, "NINA's notes: what went wrong in the fleet", every_s=900) if MEMORY.enabled else None
+_recalled = {}            # problem -> when she last looked it up (once an hour each)
+
 # ---------------------------------------------------------------- her log
 events = deque(maxlen=300)
 _lock = threading.Lock()
@@ -92,6 +104,18 @@ def note(level, text, why="", speak=False, mission=False, key=None):
     if mission and CFG.get("MissionLog", True):
         threading.Thread(target=_post, args=(f"{RIFT}/mission", {"who": NAME, "text": f"{text} {why}".strip()}), daemon=True).start()
     threading.Thread(target=_post, args=(f"{TINA}/fleet_news", {"from": NAME, "event": e}), daemon=True).start()
+    if DIGEST and level in ("warn", "problem"):
+        DIGEST.add(f"{level}: {text} {why}".strip())
+    if level == "problem" and time.time() - _recalled.get(k, 0) > 3600:
+        _recalled[k] = time.time()
+        threading.Thread(target=_seen_before, args=(text,), daemon=True).start()
+
+
+def _seen_before(text):
+    """Has this happened before? What the fleet's memory says, as a note of its own (info: not digested again)."""
+    found = MEMORY.recall(text, k=2)
+    if found:
+        note("info", "This has happened before.", " ".join(found)[:400])
 
 
 def _post(url, data):
@@ -131,7 +155,7 @@ def timed_get(url, timeout=3):
     """(response or None, milliseconds)."""
     t = time.time()
     try:
-        r = requests.get(url, timeout=timeout)
+        r = requests.get(url, timeout=timeout, verify=tls(url))
         return r, int((time.time() - t) * 1000)
     except requests.RequestException:
         return None, int((time.time() - t) * 1000)
@@ -486,6 +510,21 @@ def status():
 @app.route("/events")
 def events_json():
     return jsonify(list(events)[::-1])
+
+
+@app.route("/memory")
+def memory_status():
+    """Where the fleet's memory is (DREAM's Hindsight server) and what's waiting to be sent."""
+    return jsonify(MEMORY.status())
+
+
+@app.route("/memory/recall")
+def memory_recall():
+    """GET /memory/recall?q=NORA went quiet: what NINA remembers about it."""
+    q = (request.args.get("q") or "").strip()
+    if not q:
+        return jsonify({"error": "need q"}), 400
+    return jsonify({"query": q, "memories": MEMORY.recall(q, k=6)})
 
 
 @app.route("/report", methods=["POST"])

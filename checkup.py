@@ -29,6 +29,8 @@ import time
 
 import requests
 
+from dream_tls import tls
+
 POLL_S = 15                 # each robot's status page, at most this often (ESP web servers are slow)
 RECHECK_S = 2 * 3600        # after a checkup, leave that sensor alone this long
 NUDGE_S = 0.4               # how long the little move lasts
@@ -141,7 +143,7 @@ class Checkups:
             return
         r["polled"] = time.time()
         try:
-            d = requests.get(r["url"].rstrip("/") + path, timeout=3).json()
+            d = requests.get(r["url"].rstrip("/") + path, timeout=3, verify=tls(r["url"])).json()
         except (requests.RequestException, ValueError):
             return
         if isinstance(d, dict):
@@ -286,7 +288,7 @@ class Checkups:
         url = (r["url"] or "").rstrip("/")
         n, pw = name.upper(), self.passwords.get(name.upper(), "")
         sideways = label in ("left", "right")
-        get = lambda path, **p: requests.get(url + path, params=p, timeout=3)
+        get = lambda path, **p: requests.get(url + path, params=p, timeout=3, verify=tls(url))
         try:
             if n == "NORA":
                 if r["state"].get("mode") != "manual":

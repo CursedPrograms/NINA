@@ -7,3 +7,4 @@ models/
 # Controllers, built and kept
 !builds/
 !builds/*.exe
+memory_pending.jsonl

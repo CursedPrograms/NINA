@@ -23,9 +23,9 @@
     <ul>
       <li><a href="#overview">Overview</a></li>
       <li><a href="#checks">Checks</a></li>
-      <li><a href="#quickstart">Quick start</a></li>
       <li><a href="#settings">Settings</a></li>
       <li><a href="#api">API</a></li>
+      <li><a href="#quickstart">Quick start</a></li>
       <li><a href="https://github.com/CursedPrograms/NINA">GitHub</a></li>
     </ul>
   </div>
@@ -58,7 +58,6 @@
 </header>
 
 <main>
-
 <section id="overview">
   <div class="wrap">
     <h2>Overview</h2>
@@ -133,19 +132,6 @@
   </div>
 </section>
 
-<section id="quickstart">
-  <div class="wrap">
-    <h2>Quick start</h2>
-    <h3 class="title">Running in a minute</h3>
-    <p class="muted">NINA runs on the PC next to <a href="https://github.com/CursedPrograms/RIFT">RIFT</a>. <code>run.bat</code> creates her venv the first time and starts her; <code>run_all.bat</code> in the GitHub folder starts her with the rest of the fleet.</p>
-<pre><span class="p">&gt;</span> run.bat                  <span class="c"># sets up venv, then starts NINA</span>
-<span class="p">&gt;</span> options.bat              <span class="c"># her settings, as an options menu</span>
-
-<span class="c"># Her page: the fleet, and everything she's noticed</span>
-http://127.0.0.1:5012/</pre>
-  </div>
-</section>
-
 <section id="settings">
   <div class="wrap">
     <h2>Settings</h2>
@@ -185,6 +171,19 @@ http://127.0.0.1:5012/</pre>
       <div class="card"><h4><code>POST /report</code></h4><p>A robot sends its own readings: <code>{"name", "state": {...}, "sensors": {"front": 23.5}}</code>.</p></div>
       <div class="card"><h4><code>GET /ping</code></h4><p><code>NINA alive</code>, for anyone checking on the caretaker.</p></div>
     </div>
+  </div>
+</section>
+
+<section id="quickstart">
+  <div class="wrap">
+    <h2>Quick start</h2>
+    <h3 class="title">Running in a minute</h3>
+    <p class="muted">NINA runs on the PC next to <a href="https://github.com/CursedPrograms/RIFT">RIFT</a>. <code>run.bat</code> creates her venv the first time and starts her; <code>run_all.bat</code> in the GitHub folder starts her with the rest of the fleet.</p>
+<pre><span class="p">&gt;</span> run.bat                  <span class="c"># sets up venv, then starts NINA</span>
+<span class="p">&gt;</span> options.bat              <span class="c"># her settings, as an options menu</span>
+
+<span class="c"># Her page: the fleet, and everything she's noticed</span>
+http://127.0.0.1:5012/</pre>
   </div>
 </section>
 

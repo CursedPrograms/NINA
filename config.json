@@ -16,6 +16,8 @@
       "VoicePitch": 0.85,
       "MissionLog": true,
       "TinaUrl": "http://127.0.0.1:5013",
+      "Memory": true,
+      "HindsightUrl": "auto",
       "StuckMinutes": 10,
       "DistressMinutes": 15,
       "PanicMinutes": 3,

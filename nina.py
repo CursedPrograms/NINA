@@ -312,8 +312,13 @@ class Watch:
     def nora_why(self):
         """Why NORA might not answer: is it her, or is this PC just not on the fleet's network? The fleet
         network is whichever rung of the ladder hosts it (RIFT > DREAM > NINA > TINA > NORACTL > WHIPCTL > KIDA01CTL > KIDA00CTL > ARMCTL > NORA > WHIP >
-        KIDA01 > KIDA00 > ARM > MILA): always 192.168.4.x, its WiFi named after its host."""
+        KIDA01 > KIDA00 > ARM > MILA): 192.168.4.x, its WiFi named after its host - or, when a Windows
+        PC hosts it (RIFT's Mobile Hotspot, RIFT/Fleet/fleet_net.py), 192.168.137.x with that PC at .1."""
         net = ipaddress.ip_network(f"{NORA}/24", strict=False)
+        hotspot = ipaddress.ip_network("192.168.137.0/24")
+        if any(ipaddress.ip_address(ip) in hotspot for ip in self.ips):
+            return ("This PC hosts the fleet's WiFi (RIFT's hotspot, 192.168.137.x) and she isn't on it: "
+                    "she may be off or rebooting, or still on her own \"NORA\" network.")
         if self.wifi in FLEET_SSIDS or any(ipaddress.ip_address(ip) in net for ip in self.ips):
             return "Her WiFi is gone - she may be off or rebooting."
         where = f" at {self.ips[0]}" if self.ips else ""

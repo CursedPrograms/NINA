@@ -500,6 +500,9 @@ def chirp(u):
 
 # ---------------------------------------------------------------- web
 app = Flask(__name__)
+import talk_switch   # her Brainfuck talking muted or not: /talkmute (RIFT's Fleet/talk_mute.py)
+TALK = talk_switch.TalkSwitch(os.path.join(HERE, "talk_mute.json"))
+TALK.register(app)
 
 
 @app.route("/")
@@ -509,7 +512,7 @@ def index():
 
 @app.route("/status")
 def status():
-    return jsonify(watch.snapshot())
+    return jsonify(dict(watch.snapshot(), **TALK.state()))
 
 
 @app.route("/events")
@@ -634,6 +637,10 @@ def chirp_route():
         u = -1
     if not 0 <= u <= 13:
         return jsonify({"ok": False, "error": "use /chirp?u=0-13"}), 400
+    if TALK.chat_off:       # her chat switch is off: RIFT leaves her out
+        return TALK.refuse()
+    if TALK.muted:          # her sound switch is off: said, not beeped
+        return TALK.silent()
     threading.Thread(target=chirp, args=(u,), daemon=True).start()
     return jsonify({"ok": True})
 

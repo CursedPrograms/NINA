@@ -1,0 +1,7 @@
+/* NINA's two talk switches (/talkmute) */
+.talk-sw {
+  align-self: center; padding: 6px 12px; background: var(--bg); color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 4px; font: inherit; font-size: 0.8rem; cursor: pointer;
+}
+#talkBtn { margin-left: auto; }
+.talk-sw.muted { color: var(--text-dim); border-color: var(--border); }
